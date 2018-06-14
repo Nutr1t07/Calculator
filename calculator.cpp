@@ -3,14 +3,17 @@
 
 using namespace std;
 
-string basic_calculate(string::iterator begin, string::iterator end);
+string basic_calculate(size_t begin, size_t count, string str);
+string bracket_process(size_t begin, size_t count, string str);
 
 int main(){
 	string str = "";
 	
 	cout << "Enter the expression: ";
 	while(cin >> str){
-		str = basic_calculate(str.begin(), str.end());
+
+		str = bracket_process(0, str.size(), str);
+		str = basic_calculate(0, str.size(), str);
 		cout << "The answer is: " << str << endl;
 		cout << "Enter the expression: ";
 	}
@@ -18,8 +21,9 @@ int main(){
 
 
 //基本运算。
-string basic_calculate(string::iterator begin, string::iterator end){
-	string cal_str(begin, end);
+string basic_calculate(size_t begin, size_t count, string str){
+	string cal_str(str.substr(begin, count));
+	cout << "cal_Str: " << cal_str << endl;
 	size_t found;				//运算符号位置。
 	size_t st_left, st_right;	//执行运算部分的起始位置。
 	double left, right, result;	//运算符左右侧数字以及计算结果。
@@ -142,6 +146,38 @@ string basic_calculate(string::iterator begin, string::iterator end){
 	}
 
 	return cal_str;
+}
+
+//处理括号内的数据。
+string bracket_process(size_t begin, size_t count, string str){
+	string pending_str(str.substr(begin, count));
+	auto fir_front_bracket = pending_str.find('(');
+	if(fir_front_bracket != string::npos){
+		//auto back = pending_str.find(')');
+		//cout << "front: " << front << " back: " << back << endl;
+		//if(back != string::npos){
+			//string result = basic_calculate(front + 1, back - 1 - front, pending_str);
+			//cout << "result: " << result << endl;
+			//pending_str.replace(front, back - front + 1, basic_calculate(front + 1, back - front - 1, pending_str));
+			//cout << "pending_str: " << pending_str << endl;
+		//}
+		auto sec_front_bracket = pending_str.find('(', fir_front_bracket + 1);
+		if(sec_front_bracket != string::npos){
+			string sec_pending_str = pending_str.substr(sec_front_bracket);
+			//cout << "sec_pending_str: " << sec_pending_str << endl;
+			pending_str.erase(sec_front_bracket, sec_pending_str.size());
+			sec_pending_str = bracket_process(0, sec_pending_str.size(), sec_pending_str);
+			pending_str += sec_pending_str;
+		}
+		auto fir_back_bracket = pending_str.find(')');
+		if(fir_back_bracket != string::npos){
+			string calculated_str = basic_calculate(fir_front_bracket + 1, fir_back_bracket - fir_front_bracket - 1, pending_str);
+			cout << "pending_str: " << pending_str << " caled_str: " << calculated_str;
+			pending_str.replace(fir_front_bracket, fir_back_bracket - fir_front_bracket + 1, calculated_str);
+			cout << " pend_Str(moni): " << pending_str <<endl;
+		}
+	}
+	return pending_str;
 }
 
 //调试语句。
