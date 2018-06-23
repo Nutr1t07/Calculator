@@ -22,7 +22,9 @@ int main(){
 	while(cout << "Enter the expression: " && cin >> str){
 		sstream.str("");
 		sstream << bracket_process(0, str.size(), str);
-		cout << "The answer is: " << basic_calculate(0, str.size(), sstream.str()) << "\n" << endl;
+		str = sstream.str();
+		sstream.str("");
+		cout << "The answer is: " << basic_calculate(0, str.size(), str) << "\n" << endl;
 	}
 }
 
@@ -58,9 +60,9 @@ string basic_calculate(size_t begin, size_t count, string str){
 		}
 		verify(result);
 
-		sstream.str("");
 		sstream << result;
 		cal_str.replace(st_left, length, sstream.str());
+		sstream.str("");
 		found = cal_str.find_first_of("^");
 	}
 
@@ -75,24 +77,22 @@ string basic_calculate(size_t begin, size_t count, string str){
 			verify(result);
 
 			//将结果(double)转为string。
-			sstream.str("");			//重置流。
 			sstream << result;
 			cal_str.replace(st_left, length, sstream.str());
+			sstream.str("");			//重置流。
 		}
 		else if(cal_str[found] == '/'){	//执行除法运算。
 			left = get_operands(cal_str, found, right, length, st_left);
-			// right = stod(sstream.str());
 			result = left / right;
 			verify(result);
-
-			sstream.str("");
-			ostringstream sstream;
+			
 			sstream << result;
 			cal_str.replace(st_left, length, sstream.str());
+			sstream.str("");
 		}
 		found = cal_str.find_first_of("*/");
-
 	}
+
 	//执行一级运算(加减运算)。
 	found = cal_str.find_first_of("+-");
 	while(found != string::npos){
@@ -105,9 +105,10 @@ string basic_calculate(size_t begin, size_t count, string str){
 			result = left + right;
 			verify(result);
 
-			sstream.str("");
 			sstream << result;
 			cal_str.replace(st_left, length, sstream.str());
+			cout << "cal_str: " << cal_str << endl;
+			sstream.str("");
 		}
 		else if(cal_str[found] == '-'){
 			if((found - 1 >= 0) && isdigit(cal_str[found - 1])){
@@ -115,9 +116,9 @@ string basic_calculate(size_t begin, size_t count, string str){
 				result = left - right;
 				verify(result);
 
-				sstream.str("");
 				sstream << result;
 				cal_str.replace(st_left, length, sstream.str());
+				sstream.str("");
 			}
 			else{
 				found = cal_str.find_first_of("+-", found + 1);
@@ -137,7 +138,6 @@ string bracket_process(size_t begin, size_t count, string str){
 		auto sec_front_bracket = pending_str.find('(', fir_front_bracket + 1);
 		if(sec_front_bracket != string::npos){
 			string sec_pending_str = pending_str.substr(sec_front_bracket);
-			//cout << "sec_pending_str: " << sec_pending_str << endl;
 			pending_str.erase(sec_front_bracket, sec_pending_str.size());
 			sec_pending_str = bracket_process(0, sec_pending_str.size(), sec_pending_str);
 			pending_str += sec_pending_str;
@@ -150,19 +150,18 @@ string bracket_process(size_t begin, size_t count, string str){
 		}
 
 	}
+	sstream.str("");
 	return pending_str;
 }
 
 
 inline long double get_operands(const string str, const size_t found, long double &right, size_t &length, size_t &st_left){
-	st_left = found - 1;
-	size_t st_right = found + 1;
-	while(st_left != 0 && (isdigit(str[st_left]) || str[st_left] == '.'))
-		--st_left;
-	while(st_right != str.size() && (isdigit(str[st_right] || str[st_right] == '.')))
-		++st_right;
+	st_left = found;
+	size_t st_right = found;
+	while(--st_left != 0 && (isdigit(str[st_left]) || str[st_left] == '.'));
+	while(++st_right != str.size() && (isdigit(str[st_right]) || str[st_right] == '.'));
 	right = stod(str.substr(found + 1));
-	length = length;
+	length = st_right - st_left;
 	return stod(str.substr(st_left));
 }
 
@@ -174,8 +173,3 @@ void verify(const long double d){
 	if(d + 100 == d)
 		print_error("Overflow\n");
 }
-
-//调试语句。
-//cout << "st_left: " << st_left << " st_right: " << st_right << endl;
-//cout << "left: " << left << " right: " << right << " result: " << result << endl ;
-//cout << "var: " << sstream.str() << " cal_str: " << cal_str << "  found: " << found << endl;
