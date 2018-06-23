@@ -158,10 +158,28 @@ string bracket_process(size_t begin, size_t count, string str){
 inline long double get_operands(const string str, const size_t found, long double &right, size_t &length, size_t &st_left){
 	st_left = found;
 	size_t st_right = found;
-	while(--st_left != 0 && (isdigit(str[st_left]) || str[st_left] == '.'));
-	while(++st_right != str.size() && (isdigit(str[st_right]) || str[st_right] == '.'));
+
+	while(--st_left != 0){
+		if(isdigit(str[st_left]) || str[st_left] == '.')
+			continue;
+	 	if(str[st_left] == '-' && st_left - 1 != 0 && !isdigit(str[st_left - 1]))
+	 		continue;
+	 	break;
+	 }
+
+	while(++st_right != str.size()){
+		if (isdigit(str[st_right]) || str[st_right] == '.')
+		{
+	 		continue;
+		}
+		if(str[st_right] == '-' && !isdigit(str[st_right - 1])){
+			continue;
+		}
+		break;
+	}
+	
 	right = stod(str.substr(found + 1));
-	length = st_right - st_left;
+	length = st_right - st_left ;
 	return stod(str.substr(st_left));
 }
 
