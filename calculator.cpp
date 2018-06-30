@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iomanip>
 #include <limits>
+#include <algorithm>
+#include "fraction.h"
 
 using namespace std;
 
@@ -19,12 +21,14 @@ int main(){
 	sstream.precision(std::numeric_limits<double>::digits10);
 
 	string str = "";
-	while(cout << "Enter the expression: " && cin >> str){
+	while(cout << "Enter the expression: " && getline(cin, str)){
+		str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());
 		sstream.str("");
 		sstream << bracket_process(0, str.size(), str);
 		str = sstream.str();
 		sstream.str("");
-		cout << "The answer is: " << basic_calculate(0, str.size(), str) << "\n" << endl;
+		string answer = basic_calculate(0, str.size(), str);
+		cout << "The answer is: " << answer << "\n" << endl;
 	}
 }
 
@@ -88,6 +92,7 @@ string basic_calculate(size_t begin, size_t count, string str){
 			
 			sstream << result;
 			cal_str.replace(st_left, length, sstream.str());
+
 			sstream.str("");
 		}
 		found = cal_str.find_first_of("*/");
@@ -133,16 +138,16 @@ string basic_calculate(size_t begin, size_t count, string str){
 //处理括号内的数据。
 string bracket_process(size_t begin, size_t count, string str){
 	string pending_str(str.substr(begin, count));
-	auto fir_front_bracket = pending_str.find('(');
+	auto fir_front_bracket = pending_str.find_first_of("{[(");
 	if(fir_front_bracket != string::npos){
-		auto sec_front_bracket = pending_str.find('(', fir_front_bracket + 1);
+		auto sec_front_bracket = pending_str.find_first_of("{[(", fir_front_bracket + 1);
 		if(sec_front_bracket != string::npos){
 			string sec_pending_str = pending_str.substr(sec_front_bracket);
 			pending_str.erase(sec_front_bracket, sec_pending_str.size());
 			sec_pending_str = bracket_process(0, sec_pending_str.size(), sec_pending_str);
 			pending_str += sec_pending_str;
 		}
-		auto fir_back_bracket = pending_str.find(')');
+		auto fir_back_bracket = pending_str.find_first_of("}])");
 
 		if(fir_back_bracket != string::npos){
 			string calculated_str = basic_calculate(fir_front_bracket + 1, fir_back_bracket - fir_front_bracket - 1, pending_str);
@@ -156,31 +161,47 @@ string bracket_process(size_t begin, size_t count, string str){
 
 
 inline long double get_operands(const string str, const size_t found, long double &right, size_t &length, size_t &st_left){
-	st_left = found;
-	size_t st_right = found;
+	long double left;
+	st_left = found - 1;
+	size_t st_right = found + 1;
 
-	while(--st_left != 0){
-		if(isdigit(str[st_left]) || str[st_left] == '.')
+	while(st_left != 0){
+		if(isdigit(str[st_left]) || str[st_left] == '.'){
+			--st_left;
 			continue;
-	 	if(str[st_left] == '-' && st_left - 1 != 0 && !isdigit(str[st_left - 1]))
+		}
+	 	if(str[st_left] == '-' && st_left - 1 != 0 && !isdigit(str[st_left - 1])){
+	 		--st_left;
 	 		continue;
+	 	}
+	 	++st_left;
 	 	break;
 	 }
 
-	while(++st_right != str.size()){
-		if (isdigit(str[st_right]) || str[st_right] == '.')
-		{
+	while(st_right != str.size()){
+		if (isdigit(str[st_right]) || str[st_right] == '.'){
+			++st_right;
 	 		continue;
 		}
 		if(str[st_right] == '-' && !isdigit(str[st_right - 1])){
+			++st_right;
 			continue;
 		}
+		--st_right;
 		break;
 	}
+
+	 
+	try{
+		right = stod(str.substr(found + 1));
+		left = stod(str.substr(st_left));
+	}
+	catch(invalid_argument){
+		print_error("INVALID INPUT");
+	}
 	
-	right = stod(str.substr(found + 1));
-	length = st_right - st_left ;
-	return stod(str.substr(st_left));
+	length = st_right - st_left + 1;
+	return left;
 }
 
 void print_error(const string error){
@@ -189,5 +210,5 @@ void print_error(const string error){
 
 void verify(const long double d){
 	if(d + 100 == d)
-		print_error("Overflow\n");
+		print_error("OVERFLOW\n");
 }
