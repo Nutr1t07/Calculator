@@ -4,6 +4,7 @@
 #include <limits>
 #include <algorithm>
 #include "fraction.h"
+#include "apa.h"
 
 using namespace std;
 
@@ -13,20 +14,13 @@ string bracket_process(size_t begin, size_t count, string str);
 void print_error(string error);
 void verify(const Fraction d);
 
-ostringstream sstream;		//将double转为string的流。
-
 inline Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left);
 
 int main(){
-	sstream.precision(std::numeric_limits<double>::digits10);
-
 	string str = "";
 	while(cout << "Enter the expression: " && getline(cin, str)){
 		str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());
-		sstream.str("");
-		sstream << bracket_process(0, str.size(), str);
-		str = sstream.str();
-		sstream.str("");
+		str = bracket_process(0, str.size(), str);
 		string answer = basic_calculate(0, str.size(), str);
 		cout << "The answer is: " << answer << "\n" << endl;
 	}
@@ -63,21 +57,25 @@ string basic_calculate(size_t begin, size_t count, string str){
 				}
 				result = Fraction() / result;
 			}
+			cal_str.replace(st_left, length, to_string(result));
 		}
 		else if(cal_str[found] == '!'){
 			if((found+1) != cal_str.size() && cal_str[found + 1] == '!'){		//判断是否为双阶乘
 
 			}
 			else{
-				
+				string ans = "1";
+				for(int i = 1; i != (left.n + 1); ++i){
+					ans = multiply(ans, to_string(i));
+				}
+				length = found - st_left + 1;
+				cal_str.replace(st_left, length, ans);
 			}
 		}
 
 		verify(result);
 
-		sstream << result;
-		cal_str.replace(st_left, length, sstream.str());
-		sstream.str("");
+		//cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("^!");
 	}
 
@@ -94,11 +92,8 @@ string basic_calculate(size_t begin, size_t count, string str){
 		}
 
 		verify(result);
-		//将结果(double)转为string。
-		sstream << result;
-		cal_str.replace(st_left, length, sstream.str());
-		sstream.str("");			//重置流。
 
+		cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("*/");
 	}
 
@@ -126,10 +121,8 @@ string basic_calculate(size_t begin, size_t count, string str){
 		}
 
 		verify(result);
-		sstream << result;
-		cal_str.replace(st_left, length, sstream.str());
-		sstream.str("");
 
+		cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("+-");
 	}
 	return cal_str;
@@ -155,7 +148,6 @@ string bracket_process(size_t begin, size_t count, string str){
 		}
 
 	}
-	sstream.str("");
 	return pending_str;
 }
 

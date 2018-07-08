@@ -118,4 +118,16 @@ ostream &operator<<(ostream &out, Fraction &fract1){
 	return out;
 }
 
+string to_string(Fraction f){
+	if(f.d == 1)
+		return to_string(f.n);
+	else{
+		// if(f.n == f.n && f.d == f.d)
+		// 	return to_string((double)(f.n) / (double)(f.d))
+		// else
+			return to_string(f.n) + "|" + to_string(f.d);
+	}
+
+}
+
 #endif
