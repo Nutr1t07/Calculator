@@ -1,64 +1,198 @@
+#ifndef APA_H
+
+#define APA_H
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <algorithm>
 
 using namespace std;
 
-int limit = 10000;	//进制
-int number = 4;		//几个0
+struct Wint;
+string to_string(const Wint wint);
 
-string multiply(string s1, string s2){
-	vector<int> ans;
-	vector<int> a1, a2;
+const int SCALE = 10000;	//进制
+const int COUNT = 4;		//几个0
 
-	string temp;
-	int len1 = s1.size();
-	while(len1 / number){
-		temp = s1.substr(len1 - number, number);
-		a1.push_back(stoi(temp));
-		len1 -= number;
-	}
-	if(len1){
-		temp = s1.substr(0, len1);
-		a1.push_back(stoi(temp));
-	}
-	int len2 = s2.size();
-	while(len2 / number){
-		temp = s2.substr(len2 - number, number);
-		a2.push_back(stoi(temp));
-		len2 -= number;
-	}
-	if(len2){
-		temp = s2.substr(0, len2);
-		a2.push_back(stoi(temp));
-	}
+struct Wint : vector<int>
+{
+	Wint() = default;
 
-	ans.resize(a1.size() + a2.size());
-	int x = 0;	//进位
-	for(auto i = 0; i < a1.size(); ++i){
-		for(auto j = 0; j < a2.size(); ++j){
-			ans[i+j] += a1[i] * a2[j];
+	Wint(string str){
+		auto len = str.size();
+		while(len / COUNT){
+			len -= COUNT;
+			push_back(stoi(str.substr(len, COUNT)));
 		}
+		if(len)
+			push_back(stoi(str.substr(0, len)));
 	}
 
-	for(int a = 0; a != ans.size(); ++a){
-		ans[a] += x;
-		x = ans[a] / limit;
-		ans[a] %= limit;
+	Wint(int num){
+		push_back(num);
+		carry();
 	}
 
-	if(x > 0){
-		ans.push_back(x % limit);
-		x %= limit;
+	Wint(size_t size, int n = 0){
+		resize(size, n);
 	}
-	reverse(ans.begin(), ans.end());
+
+	Wint &carry(){
+		if(empty())
+			return *this;
+		for(int i = 1; i < size(); ++i){
+			if((*this)[i-1] < 0){
+				((*this)[i-1] = SCALE + (*this)[i-1]);
+				if((*this)[i] < 0)
+					(*this)[i] += 1;
+				else
+					(*this)[i] -= 1;
+			}
+			(*this)[i] += (*this)[i-1] / SCALE;
+			(*this)[i-1] %= SCALE;
+		}
+
+		while(back() / SCALE){
+			push_back(back() / SCALE);
+			(*this)[size()-2] %= SCALE;
+		}
+		while(back() == 0){
+
+			pop_back();
+		}
+		return *this;
+	}
+
+	bool operator>(const Wint &w1){
+		if(w1.size() != size())
+			return size() > w1.size();
+		auto max_size(max(w1.size(), this->size()));
+		for(auto i = size() - 1; i >= 0; --i)
+			if((*this)[i] != w1[i])
+				return (*this)[i] > w1[i];
+		return false;
+	}
+
+	bool operator<(const Wint &w1){
+		Wint w_c = w1;
+		return (w_c > *this);
+	}
+
+	bool operator>=(const Wint &w1){
+		return !(*this < w1);
+	}
+
+	bool operator<=(const Wint &w1){
+		return !(*this > w1);
+	}
+
+	Wint& operator+=(const Wint &w1){
+		resize(size() + w1.size());
+		for(int i = 0; i < size(); ++i){
+			(*this)[i] = (*this)[i] + w1[i];
+		}
+		return carry();
+	}
+
+	Wint operator+(const Wint &w1){
+		return *this += w1;
+	}
+
+	Wint& operator-=(const Wint &w1){
+		int max_size = max(size(), w1.size());
+		Wint left(max_size), right(max_size);
+		bool negative = false;
+		if(w1 > *this){
+			negative = true;
+			left = w1;
+			right = *this;
+		}
+		else{
+			left = *this;
+			right = w1;
+		}
+
+		resize(max_size);
+		for(int i = 0; i < max_size; ++i){
+			(*this)[i] = left[i] - right[i];
+		}
+
+		carry();
+		if(negative){
+			back() = 0 - back();
+		}
+		return *this;
+	}
+
+	Wint operator-(const Wint &w1){
+		return *this -= w1;
+	}
+
+	Wint operator*(const Wint &w1){
+		Wint ans(size() + w1.size());
+		for(int i = 0; i < size(); ++i)
+			for(int j = 0; j < w1.size(); ++j)
+				ans[i+j] = (*this)[i] * w1[j];
+		ans.carry();
+
+		return ans;
+	}
+
+	Wint operator*=(const Wint &w1){
+		return (*this) * w1;
+	}
+
+	Wint operator/(const Wint &w1){
+		string s1(to_string(*this));
+		string s2(to_string(w1));
+		bool negative = true;
+		auto t1 = remove(s1.begin(), s1.end(), '-');
+		auto t2 = remove(s2.begin(), s2.end(), '-');
+		if((t1 == s1.end() && t2 == s2.end()) || (t1 != s1.end() && t2 != s2.end()))
+			negative = false;
+		int s2_length = s2.size();
+		Wint left(s1), right;
+		int count = 0;
+		while(s2.size() < s1.size()){
+			s2 += '0';
+			++count;
+		}
+
+		string result;
+		while(count >= 0){
+			right = Wint(s2.substr(0, s2_length + count));
+			int c = 0;
+
+
+			while(left >= right){
+				left -= right;
+				++c;
+			}
+			result += to_string(c);
+			--count;
+		}
+		return Wint(result);
+	}
+};
+
+string to_string(const Wint &wint){
+	Wint copy;
+	copy.resize(wint.size());
+	reverse_copy(wint.begin(), wint.end(), copy.begin());
 	string result;
-	for(auto n : ans){
-		string sn = to_string(n);
-		result += string(number - sn.size(), '0') + sn;
+	bool negative = false;
+	for(auto n : wint){
+		string ns(to_string(n));
+		if(ns[0] == '-'){
+			result = string(COUNT + 1 - ns.size(), '0') + ns.substr(1) + result;
+			negative = true;
+		}
+		else
+			result = string(COUNT - ns.size(), '0') + ns + result;
 	}
-	//移除开头空格
-	result.erase(result.begin(), find_if(result.begin(), result.end(), [](auto ch){return ch != '0';}));
+	result.erase(result.begin(), find_if(result.begin(), result.end(),[](char ch){ return ch != '0'; }));
+	if(negative)
+		result = '-' + result;
 	return result;
 }
+
+#endif

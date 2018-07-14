@@ -66,16 +66,16 @@ string basic_calculate(size_t begin, size_t count, string str){
 			else{
 				string ans = "1";
 				for(int i = 1; i != (left.n + 1); ++i){
-					ans = multiply(ans, to_string(i));
+					ans = mult(ans, to_string(i));
 				}
 				length = found - st_left + 1;
-				cal_str.replace(st_left, length, ans);
+				
 			}
 		}
 
 		verify(result);
 
-		//cal_str.replace(st_left, length, to_string(result));
+		cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("^!");
 	}
 
