@@ -64,18 +64,20 @@ string basic_calculate(size_t begin, size_t count, string str){
 
 			}
 			else{
-				string ans = "1";
-				for(int i = 1; i != (left.n + 1); ++i){
-					ans = mult(ans, to_string(i));
+				Wint ans(1);
+				cout << to_string((left.n + 1)) << endl;
+				for(int i = 1; left.n != i; ++i){
+					ans *= i;
 				}
-				length = found - st_left + 1;
-				
+				length = found - st_left + 2;
+				result.n = ans;
+
 			}
 		}
 
 		verify(result);
-
 		cal_str.replace(st_left, length, to_string(result));
+
 		found = cal_str.find_first_of("^!");
 	}
 

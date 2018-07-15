@@ -8,9 +8,12 @@
 
 using namespace std;
 
+struct Fraction;
+string to_string(Fraction &fract);
+
 struct Fraction{
 	Wint n;		//分子。
-	Wint d;		//分母。
+	Wint d = 1;		//分母。
 	Fraction() = default;
 
 	Fraction(string str){
@@ -41,8 +44,10 @@ struct Fraction{
 	}
 
 	Wint gcd(Wint m, Wint n){		//最大公因数。
-		if(n == "0")
+		if(n.size() == 0){
 			return m;
+		}
+
 		return gcd(n, m%n);
 	}
 
@@ -82,13 +87,9 @@ struct Fraction{
 	}
 
 	Fraction operator/(const Fraction &f1){
-		Fraction fract;
-		fract.n = f1.d;
-		fract.d = f1.n;
-		
 		Fraction result;
-		result.d = fract.d * this->d;
-		result.n = fract.n * this->n;
+		result.d = this->d * f1.n;
+		result.n = this->n * f1.d;
 		result.reduce();
 		return result;
 	}
@@ -99,23 +100,24 @@ struct Fraction{
 		
 		Fraction result;
 		result.d = fract.d;
-		result.n = fract.n - this->n;
+		result.n = this->n - fract.n;
 		result.reduce();
 		return result;
 	}
 };
 
-string to_string(Fraction fract){
+string to_string(Fraction& fract){
 	if(fract.d == 1)
 		return to_string(fract.n);
 	else{
 		//判断分数是否可以转为小数。
-		Fraction f(to_string((double)(fract.n) / (double)(fract.d)));
+		Fraction f(to_string(fract.n / fract.d));
 
 		if(f.n == fract.n && f.d == fract.d)
-		 	return to_string((double)(f.n) / (double)(f.d));
-		else
-			return to_string(f.n) + "|" + to_string(f.d);
+		 	return to_string(fract.n / fract.d);
+		else{
+			return to_string(fract.n) + "|" + to_string(fract.d);
+		}
 	}
 }
 

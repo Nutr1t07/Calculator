@@ -32,7 +32,7 @@ struct Wint : vector<int>
 		carry();
 	}
 
-	Wint(size_t size, int n = 0){
+	Wint(size_t size, int n){
 		resize(size, n);
 	}
 
@@ -62,28 +62,43 @@ struct Wint : vector<int>
 		return *this;
 	}
 
-	bool operator>(const Wint &w1){
-		if(w1.size() != size())
-			return size() > w1.size();
-		auto max_size(max(w1.size(), this->size()));
-		for(auto i = size() - 1; i >= 0; --i)
+	bool operator==(const Wint &w1) const{
+		if(w1.size() != this->size())
+			return false;
+		for(int i = 0; i < this->size(); ++i){
+			if((*this)[i] != w1[i])
+				return false;
+		}
+		return true;
+	}
+
+	bool operator!=(const Wint &w1) const{
+		return !(*this == w1);
+	}
+
+	bool operator>(const Wint &w1) const{
+		if(w1.size() != this->size())
+			return this->size() > w1.size();
+		int max_size(max(w1.size(), this->size()));
+		for(int i = size() - 1; i >= 0; --i)
 			if((*this)[i] != w1[i])
 				return (*this)[i] > w1[i];
 		return false;
 	}
 
-	bool operator<(const Wint &w1){
-		Wint w_c = w1;
-		return (w_c > *this);
+	bool operator<(const Wint &w1) const{
+		return (w1 > *this);
 	}
 
-	bool operator>=(const Wint &w1){
+	bool operator>=(const Wint &w1) const{
 		return !(*this < w1);
 	}
 
-	bool operator<=(const Wint &w1){
+	bool operator<=(const Wint &w1) const{
 		return !(*this > w1);
 	}
+
+
 
 	Wint& operator+=(const Wint &w1){
 		resize(size() + w1.size());
@@ -99,7 +114,7 @@ struct Wint : vector<int>
 
 	Wint& operator-=(const Wint &w1){
 		int max_size = max(size(), w1.size());
-		Wint left(max_size), right(max_size);
+		Wint left(max_size, 0), right(max_size, 0);
 		bool negative = false;
 		if(w1 > *this){
 			negative = true;
@@ -128,7 +143,7 @@ struct Wint : vector<int>
 	}
 
 	Wint operator*(const Wint &w1){
-		Wint ans(size() + w1.size());
+		Wint ans(size() + w1.size(), 0);
 		for(int i = 0; i < size(); ++i)
 			for(int j = 0; j < w1.size(); ++j)
 				ans[i+j] = (*this)[i] * w1[j];
@@ -137,8 +152,8 @@ struct Wint : vector<int>
 		return ans;
 	}
 
-	Wint operator*=(const Wint &w1){
-		return (*this) * w1;
+	Wint& operator*=(const Wint &w1){
+		return *this = *this * w1;
 	}
 
 	Wint operator/(const Wint &w1){
@@ -162,7 +177,6 @@ struct Wint : vector<int>
 			right = Wint(s2.substr(0, s2_length + count));
 			int c = 0;
 
-
 			while(left >= right){
 				left -= right;
 				++c;
@@ -172,9 +186,46 @@ struct Wint : vector<int>
 		}
 		return Wint(result);
 	}
+
+	Wint& operator/=(const Wint &w1){
+		return *this = *this / w1;
+	}
+
+	Wint operator%(const Wint &w1){
+		Wint wint = *this / w1;
+		wint *= w1;
+		return *this - wint;
+	}
+
+	Wint& operator%=(const Wint &w1){
+		return *this = *this % w1;
+	}
+
+
+	Wint& operator++(){
+		*this += 1;
+		return *this;
+	}
+
+	Wint operator++(int){
+		Wint wint = *this;
+		*this += 1;
+		return wint; 
+	}
+
+	Wint& operator--(){
+		*this -= 1;
+		return *this;
+	}
+
+	Wint operator--(int){
+		Wint wint = *this;
+		*this -= 1;
+		return wint; 
+	}
 };
 
-string to_string(const Wint &wint){
+string to_string(const Wint wint){
 	Wint copy;
 	copy.resize(wint.size());
 	reverse_copy(wint.begin(), wint.end(), copy.begin());
@@ -190,6 +241,8 @@ string to_string(const Wint &wint){
 			result = string(COUNT - ns.size(), '0') + ns + result;
 	}
 	result.erase(result.begin(), find_if(result.begin(), result.end(),[](char ch){ return ch != '0'; }));
+	if(result == "")
+		return "0";
 	if(negative)
 		result = '-' + result;
 	return result;
