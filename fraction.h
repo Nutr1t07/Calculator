@@ -55,7 +55,7 @@ struct Fraction{
 		return m * n / gcd(m, n);
 	}
 
-	void rtcd(Fraction &f1, Fraction &f2){		//通分。
+	void rtcd(Fraction &f1, Fraction &f2){		//通分。//这里出错了
 		Wint a = lcm(f1.d, f2.d);
 		Wint f1_a = a / f1.d;
 		f1.d = a;

@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
+#include <set>
 #include "fraction.h"
 #include "apa.h"
 
@@ -65,7 +66,6 @@ string basic_calculate(size_t begin, size_t count, string str){
 			}
 			else{
 				Wint ans(1);
-				cout << to_string((left.n + 1)) << endl;
 				for(int i = 1; left.n != i; ++i){
 					ans *= i;
 				}
@@ -101,25 +101,19 @@ string basic_calculate(size_t begin, size_t count, string str){
 
 	//执行一级运算(加减运算)。
 	found = cal_str.find_first_of("+-");
+	while(found == st_left){	
+	}
 	while(found != string::npos){
-		if(cal_str[found - 1] == 'e'){		//忽略科学记数法。
-				found = cal_str.find_first_of("+-", found + 1);
-				continue;
-		}
 		left = get_operands(cal_str, found, right, length, st_left);
-
+		if(found == st_left){	//忽略正负号。
+			found = cal_str.find_first_of("+-", found + 1);
+			continue;
+		}
 		if(cal_str[found] == '+'){
 			result = left + right;
 		}
 		else if(cal_str[found] == '-'){
-			if((found - 1 >= 0) && isdigit(cal_str[found - 1])){
-				result = left - right;
-
-			}
-			else{
-				found = cal_str.find_first_of("+-", found + 1);
-				continue;
-			}
+			result = left - right;
 		}
 
 		verify(result);
@@ -156,11 +150,15 @@ string bracket_process(size_t begin, size_t count, string str){
 
 inline Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left){
 	Fraction left;
-	st_left = found - 1;
-	size_t st_right = found + 1;
-	string operands= "+-*/^";
+	st_left = found;
+	size_t st_right = found;
+	set<char> exclusions{'+', '-', '*', '/', '^'};
 	while(st_left != 0){
-		if(operands.find(str[st_left]) == string::npos){
+		if(exclusions.find(str[st_left - 1]) == exclusions.end()){
+			--st_left;
+			continue;
+		}
+		if(st_left == found){	//正负号。
 			--st_left;
 			continue;
 		}
@@ -168,9 +166,13 @@ inline Fraction get_operands(const string str, const size_t found, Fraction &rig
 	 }
 
 	while(st_right != str.size()){
-		if (operands.find(str[st_right]) == string::npos){
+		if (exclusions.find(str[st_right + 1]) == exclusions.end()){
 			++st_right;
 	 		continue;
+		}
+		if(st_right == found){
+			++st_right;
+			continue;
 		}
 		break;
 	}
@@ -187,7 +189,7 @@ inline Fraction get_operands(const string str, const size_t found, Fraction &rig
 			print_error("INVALID INPUT");
 		}
 	}
-	length = st_right - st_left;
+	length = st_right - st_left + 1;
 	return left;
 }
 
