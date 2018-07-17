@@ -74,7 +74,7 @@ string basic_calculate(size_t begin, size_t count, string str){
 			}
 			else{
 				Wint ans(1);
-				for(int i = 1; left.n != i; ++i)
+				for(int i = 1; left.n != i-1; ++i)
 					ans *= i;
 				length = found - st_left + 2;
 				result.n = ans;
