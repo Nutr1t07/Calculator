@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <set>
 #include "fraction.h"
-#include "apa.h"
 
 using namespace std;
 
@@ -62,13 +61,21 @@ string basic_calculate(size_t begin, size_t count, string str){
 		}
 		else if(cal_str[found] == '!'){
 			if((found+1) != cal_str.size() && cal_str[found + 1] == '!'){		//判断是否为双阶乘
-
+				Wint ans(1);
+				int i;
+				if(left.n % 2 == 1)
+					i = 1;
+				else
+					i = 2;
+				for(; left.n >= i; i += 2)
+					ans *= i;
+				length = found - st_left + 3;
+				result.n = ans;
 			}
 			else{
 				Wint ans(1);
-				for(int i = 1; left.n != i; ++i){
+				for(int i = 1; left.n != i; ++i)
 					ans *= i;
-				}
 				length = found - st_left + 2;
 				result.n = ans;
 
@@ -101,11 +108,9 @@ string basic_calculate(size_t begin, size_t count, string str){
 
 	//执行一级运算(加减运算)。
 	found = cal_str.find_first_of("+-");
-	while(found == st_left){	
-	}
 	while(found != string::npos){
 		left = get_operands(cal_str, found, right, length, st_left);
-		if(found == st_left){	//忽略正负号。
+		if(st_left == found){
 			found = cal_str.find_first_of("+-", found + 1);
 			continue;
 		}
@@ -152,13 +157,13 @@ inline Fraction get_operands(const string str, const size_t found, Fraction &rig
 	Fraction left;
 	st_left = found;
 	size_t st_right = found;
-	set<char> exclusions{'+', '-', '*', '/', '^'};
+	set<char> exclusions{'+', '-', '*', '/', '^', '!'};
 	while(st_left != 0){
 		if(exclusions.find(str[st_left - 1]) == exclusions.end()){
 			--st_left;
 			continue;
 		}
-		if(st_left == found){	//正负号。
+		if(!isdigit(str[st_left - 2])){	//忽略正负号。
 			--st_left;
 			continue;
 		}
@@ -182,12 +187,8 @@ inline Fraction get_operands(const string str, const size_t found, Fraction &rig
 		right = Fraction(str.substr(found + 1, st_right - found));
 	}
 	catch(invalid_argument){
-		if(str[found] == '!'){
-
-		}
-		else{
+		if(str[found] != '!')
 			print_error("INVALID INPUT");
-		}
 	}
 	length = st_right - st_left + 1;
 	return left;

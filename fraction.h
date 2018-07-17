@@ -20,7 +20,7 @@ struct Fraction{
 		size_t found;
 		found = str.find('.');
 		if(found != string::npos){
-			d = Wint("1" + string(str.size() - 1, '0'));
+			d = Wint("1" + string(str.size() - 2, '0'));
 			str.erase(found, 1);
 			n = str;
 			reduce();
@@ -33,11 +33,16 @@ struct Fraction{
 			return;
 		}
 		n = str;
-		d = Wint("1");
 	}
 
 	Fraction& reduce(){					//约分。
-		Wint cd = gcd(n, d);
+		if(d == 1)
+			return *this;
+		Wint n_copy = n, d_copy = d;
+		if(n.isNegative + d.isNegative != 1)
+			n.isNegative = d.isNegative = 0;
+		n_copy.isNegative = d_copy.isNegative = 0;
+		Wint cd = gcd(n_copy, d_copy);
 		n /= cd;
 		d /= cd;
 		return *this;
@@ -47,7 +52,6 @@ struct Fraction{
 		if(n.size() == 0){
 			return m;
 		}
-
 		return gcd(n, m%n);
 	}
 
@@ -55,7 +59,7 @@ struct Fraction{
 		return m * n / gcd(m, n);
 	}
 
-	void rtcd(Fraction &f1, Fraction &f2){		//通分。//这里出错了
+	void rtcd(Fraction &f1, Fraction &f2){		//通分。
 		Wint a = lcm(f1.d, f2.d);
 		Wint f1_a = a / f1.d;
 		f1.d = a;
@@ -68,7 +72,6 @@ struct Fraction{
 	Fraction operator+(const Fraction &f1){
 		Fraction fract = f1;
 		rtcd(fract, *this);
-		
 		Fraction result;
 		result.d = fract.d;
 		result.n = fract.n + this->n;
@@ -97,7 +100,6 @@ struct Fraction{
 	Fraction operator-(const Fraction &f1){
 		Fraction fract = f1;
 		rtcd(fract, *this);
-		
 		Fraction result;
 		result.d = fract.d;
 		result.n = this->n - fract.n;
