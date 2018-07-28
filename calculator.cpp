@@ -12,15 +12,14 @@ string basic_calculate(size_t begin, size_t count, string str);
 string bracket_process(size_t begin, size_t count, string str);
 
 void print_error(string error);
-void verify(const Fraction d);
 
 inline Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left);
 
 int main(){
 	string str = "";
 	while(cout << "Enter the expression: " && getline(cin, str)){
-		str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());
-		str = bracket_process(0, str.size(), str);
+		str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());	//去除表达式中的空格。
+		str = bracket_process(0, str.size(), str);							//处理空格。
 		string answer = basic_calculate(0, str.size(), str);
 		cout << "The answer is: " << answer << "\n" << endl;
 	}
@@ -81,8 +80,6 @@ string basic_calculate(size_t begin, size_t count, string str){
 
 			}
 		}
-
-		verify(result);
 		cal_str.replace(st_left, length, to_string(result));
 
 		found = cal_str.find_first_of("^!");
@@ -99,8 +96,6 @@ string basic_calculate(size_t begin, size_t count, string str){
 		else if(cal_str[found] == '/'){	//执行除法运算。
 			result = left / right;
 		}
-
-		verify(result);
 
 		cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("*/");
@@ -121,8 +116,6 @@ string basic_calculate(size_t begin, size_t count, string str){
 			result = left - right;
 		}
 
-		verify(result);
-
 		cal_str.replace(st_left, length, to_string(result));
 		found = cal_str.find_first_of("+-");
 	}
@@ -130,26 +123,26 @@ string basic_calculate(size_t begin, size_t count, string str){
 }
 
 //处理括号内的数据。
-string bracket_process(size_t begin, size_t count, string str){
-	string pending_str(str.substr(begin, count));
-	auto fir_front_bracket = pending_str.find_first_of("{[(");
-	if(fir_front_bracket != string::npos){
-		auto sec_front_bracket = pending_str.find_first_of("{[(", fir_front_bracket + 1);
-		if(sec_front_bracket != string::npos){
-			string sec_pending_str = pending_str.substr(sec_front_bracket);
-			pending_str.erase(sec_front_bracket, sec_pending_str.size());
-			sec_pending_str = bracket_process(0, sec_pending_str.size(), sec_pending_str);
-			pending_str += sec_pending_str;
+string bracket_process(size_t begin, size_t count, string pending_str){
+	string str(pending_str.substr(begin, count));
+	auto front1_brac = str.find_first_of("{[(");
+	if(front1_brac != string::npos){
+		auto front2_brac = str.find_first_of("{[(", front1_brac + 1);
+		if(front2_brac != string::npos){
+			string str2 = str.substr(front2_brac);
+			str.erase(front2_brac, str2.size());
+			str2 = bracket_process(0, str2.size(), str2);
+			str += str2;
 		}
-		auto fir_back_bracket = pending_str.find_first_of("}])");
+		auto back1_bracket = str.find_first_of("}])");
 
-		if(fir_back_bracket != string::npos){
-			string calculated_str = basic_calculate(fir_front_bracket + 1, fir_back_bracket - fir_front_bracket - 1, pending_str);
-			pending_str.replace(fir_front_bracket, fir_back_bracket - fir_front_bracket + 1, calculated_str);
+		if(back1_bracket != string::npos){
+			string calculated_str = basic_calculate(front1_brac + 1, back1_bracket - front1_brac - 1, pending_str);
+			str.replace(front1_brac, back1_bracket - front1_brac + 1, calculated_str);
 		}
 
 	}
-	return pending_str;
+	return str;
 }
 
 
@@ -196,9 +189,4 @@ inline Fraction get_operands(const string str, const size_t found, Fraction &rig
 
 void print_error(const string error){
 	cerr << "\n---WARNING---\n" << error << endl;
-}
-
-void verify(const Fraction d){
-	// if(d + 100 == d)
-	// 	print_error("OVERFLOW\n");
 }

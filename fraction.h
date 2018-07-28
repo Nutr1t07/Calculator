@@ -15,7 +15,6 @@ struct Fraction{
 	Wint n;		//分子。
 	Wint d = 1;		//分母。
 	Fraction() = default;
-
 	Fraction(string str){
 		size_t found;
 		found = str.find('.');
@@ -35,6 +34,11 @@ struct Fraction{
 		n = str;
 	}
 
+	Fraction operator+(const Fraction &f1) const;
+	Fraction operator-(const Fraction &f1) const;
+	Fraction operator*(const Fraction &f1) const;
+	Fraction operator/(const Fraction &f1) const;
+
 	Fraction& reduce(){					//约分。
 		if(d == 1)
 			return *this;
@@ -47,66 +51,55 @@ struct Fraction{
 		d /= cd;
 		return *this;
 	}
-
-	Wint gcd(Wint m, Wint n){		//最大公因数。
-		if(n.size() == 0){
-			return m;
-		}
-		return gcd(n, m%n);
-	}
-
-	Wint lcm(Wint m, Wint n){		//最小公倍数。
-		return m * n / gcd(m, n);
-	}
-
-	void rtcd(Fraction &f1, Fraction &f2){		//通分。
-		Wint a = lcm(f1.d, f2.d);
-		Wint f1_a = a / f1.d;
-		f1.d = a;
-		f1.n *= f1_a;
-		Wint f2_a = a / f2.d;
-		f2.d = a;
-		f2.n *= f2_a;
-	}
-
-	Fraction operator+(const Fraction &f1){
-		Fraction fract = f1;
-		rtcd(fract, *this);
-		Fraction result;
-		result.d = fract.d;
-		result.n = fract.n + this->n;
-		result.reduce();
-		return result;
-	}
-
-	Fraction operator*(const Fraction &f1){
-		Fraction fract = f1;
-		Fraction result;
-
-		result.d = fract.d * this->d;
-		result.n = fract.n * this->n;
-		result.reduce();
-		return result;
-	}
-
-	Fraction operator/(const Fraction &f1){
-		Fraction result;
-		result.d = this->d * f1.n;
-		result.n = this->n * f1.d;
-		result.reduce();
-		return result;
-	}
-
-	Fraction operator-(const Fraction &f1){
-		Fraction fract = f1;
-		rtcd(fract, *this);
-		Fraction result;
-		result.d = fract.d;
-		result.n = this->n - fract.n;
-		result.reduce();
-		return result;
-	}
 };
+
+void rtcd(Fraction &f1, Fraction &f2){		//通分。
+	Wint a = lcm(f1.d, f2.d);
+	Wint f1_a = a / f1.d;
+	f1.d = a;
+	f1.n *= f1_a;
+	Wint f2_a = a / f2.d;
+	f2.d = a;
+	f2.n *= f2_a;
+}
+
+Fraction Fraction::operator+(const Fraction &f1) const{
+	Fraction left = *this;
+	Fraction right = f1;
+	rtcd(left, right);
+	Fraction result;
+	result.d = left.d;
+	result.n = left.n + right.n;
+	result.reduce();
+	return result;
+}
+
+Fraction Fraction::operator-(const Fraction &f1) const{
+	Fraction left = *this;
+	Fraction right = f1;
+	rtcd(right, left);
+	Fraction result;
+	result.d = right.d;
+	result.n = left.n - right.n;
+	result.reduce();
+	return result;
+}
+
+Fraction Fraction::operator*(const Fraction &f1) const{
+	Fraction result;
+	result.d = this->d * f1.d;
+	result.n = this->n * f1.n;
+	result.reduce();
+	return result;
+}
+
+Fraction Fraction::operator/(const Fraction &f1) const{
+	Fraction result;
+	result.d = this->d * f1.n;
+	result.n = this->n * f1.d;
+	result.reduce();
+	return result;
+}
 
 string to_string(Fraction& fract){
 	if(fract.d == 1)

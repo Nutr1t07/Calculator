@@ -313,4 +313,15 @@ Wint Wint::operator%(const Wint &w1) const{
 	return left - wint;
 }
 
+Wint gcd(const Wint m, const Wint n){		//最大公因数。
+	if(n.size() == 0){
+		return m;
+	}
+	return gcd(n, m%n);
+}
+
+Wint lcm(const Wint m, const Wint n){		//最小公倍数。
+	return m * n / gcd(m, n);
+}
+
 #endif
