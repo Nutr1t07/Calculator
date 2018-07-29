@@ -9,6 +9,19 @@ using namespace std;
 
 struct Wint;
 string to_string(const Wint wint);
+bool operator==(const Wint &w1, const Wint &w2);
+bool operator!=(const Wint &w1, const Wint &w2);
+bool operator>(const Wint &w1, const Wint &w2);
+bool operator<(const Wint &w1, const Wint &w2);
+bool operator>=(const Wint &w1, const Wint &w2);
+bool operator<=(const Wint &w1, const Wint &w2);
+
+
+Wint operator+(const Wint w1, const Wint w2);
+Wint operator-(const Wint w1, const Wint w2);
+Wint operator*(const Wint w1, const Wint w2);
+Wint operator/(const Wint w1, const Wint w2);
+Wint operator%(const Wint w1, const Wint w2);
 
 const int SCALE = 10000;	//进制。
 const int PRECISION = 4;	//精度。
@@ -44,19 +57,6 @@ struct Wint : vector<int>
 	Wint(size_t size, int n){
 		resize(size, n);
 	}
-
-	bool operator==(const Wint &w1);
-	bool operator!=(const Wint &w1);
-	bool operator>(const Wint &w1);
-	bool operator<(const Wint &w1);
-	bool operator>=(const Wint &w1);
-	bool operator<=(const Wint &w1);
-
-	Wint operator+(const Wint &w1) const;
-	Wint operator-(const Wint &w1) const;
-	Wint operator*(const Wint &w1) const;
-	Wint operator/(const Wint &w1) const;
-	Wint operator%(const Wint &w1) const;
 
 	Wint &carry(){
 		if(empty())
@@ -201,28 +201,28 @@ string to_string(const Wint wint){
 	return result;
 }
 
-bool Wint::operator==(const Wint &w1){
-	if(this->size() != w1.size())
+bool operator==(const Wint &w1, const Wint &w2){
+	if(w1.size() != w2.size())
 		return 0;
 	for(int i = 0; i < w1.size(); ++i){
-		if((*this)[i] != w1[i])
+		if(w1[i] != w2[i])
 			return 0;
 	}
 	return 1;
 }
 
-bool Wint::operator!=(const Wint &w1){
-	return !(*this == w1);
+bool operator!=(const Wint &w1, const Wint &w2){
+	return !(w1 == w2);
 }
 
-bool Wint::operator>(const Wint &w1){
-	if((this->isNegative + w1.isNegative) == 1){	//若两数异号：
+bool operator>(const Wint &w1, const Wint &w2){
+	if((w1.isNegative + w2.isNegative) == 1){	//若两数异号：
 		return w1.isNegative;
 	}
-	Wint left = *this, right = w1;
+	Wint left = w1, right = w2;
 	if(w1.isNegative == 1){	//若两数同为负：
-		left = w1;
-		right = *this;
+		left = w2;
+		right = w1;
 	}
 	if(left.size() != right.size())
 		return left.size() > right.size();
@@ -233,42 +233,42 @@ bool Wint::operator>(const Wint &w1){
 	return 0;
 }
 
-bool Wint::operator<(const Wint &w1){
-	return (w1 > *this);
+bool operator<(const Wint &w1, const Wint &w2){
+	return (w2 > w1);
 }
 
-bool Wint::operator>=(const Wint &w1){
-	return !(*this < w1);
+bool operator>=(const Wint &w1, const Wint &w2){
+	return !(w1 < w2);
 }
 
-bool Wint::operator<=(const Wint &w1){
-	return !(*this > w1);
+bool operator<=(const Wint &w1, const Wint &w2){
+	return !(w1 > w2);
 }
 
 
-Wint Wint::operator+(const Wint &w1) const{
-	Wint left = *this;
-	return left += w1;
+Wint operator+(const Wint w1, const Wint w2){
+	Wint left = w1;
+	return left += w2;
 }
 
-Wint Wint::operator-(const Wint &w1) const{
-	Wint left = *this;
-	return left -= w1;
+Wint operator-(const Wint w1, const Wint w2){
+	Wint left = w1;
+	return left -= w2;
 }
 
-Wint Wint::operator*(const Wint &w1) const{
-	Wint ans(size() + w1.size(), 0);
-	for(int i = 0; i < size(); ++i)
-		for(int j = 0; j < w1.size(); ++j)
-			ans[i+j] = (*this)[i] * w1[j];
+Wint operator*(const Wint w1, const Wint w2){
+	Wint ans(w1.size() + w2.size(), 0);
+	for(int i = 0; i < w1.size(); ++i)
+		for(int j = 0; j < w2.size(); ++j)
+			ans[i+j] = w1[i] * w2[j];
 	ans.carry();
-	if(this->isNegative + w1.isNegative == 1)
+	if(w1.isNegative + w2.isNegative == 1)
 		ans.isNegative = 1;
 	return ans;
 }
 
-Wint Wint::operator/(const Wint &w1) const{
-	Wint left = *this, right = w1;
+Wint operator/(const Wint w1, const Wint w2){
+	Wint left = w1, right = w2;
 	left.isNegative = 0;
 	right.isNegative = 0;
 	string s1(to_string(left));
@@ -294,22 +294,22 @@ Wint Wint::operator/(const Wint &w1) const{
 		--PRECISION;
 	}
 	Wint ans(result);
-	if(this->isNegative + w1.isNegative == 1)
+	if(w1.isNegative + w2.isNegative == 1)
 		ans.isNegative = 1;
 	return ans;
 }
 
-Wint Wint::operator%(const Wint &w1) const{
-	Wint left = *this, right = w1;
+Wint operator%(const Wint w1, const Wint w2){
+	Wint left = w1, right = w2;
 	left.isNegative = 0;
 	right.isNegative = 0;
 	if(left < right){
-		right = *this;
 		left = w1;
+		right = w2;
 	}
 
 	Wint wint = left / right;
-	wint *= w1;
+	wint *= w2;
 	return left - wint;
 }
 

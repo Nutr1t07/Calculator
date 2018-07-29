@@ -34,11 +34,6 @@ struct Fraction{
 		n = str;
 	}
 
-	Fraction operator+(const Fraction &f1) const;
-	Fraction operator-(const Fraction &f1) const;
-	Fraction operator*(const Fraction &f1) const;
-	Fraction operator/(const Fraction &f1) const;
-
 	Fraction& reduce(){					//约分。
 		if(d == 1)
 			return *this;
@@ -63,9 +58,9 @@ void rtcd(Fraction &f1, Fraction &f2){		//通分。
 	f2.n *= f2_a;
 }
 
-Fraction Fraction::operator+(const Fraction &f1) const{
-	Fraction left = *this;
-	Fraction right = f1;
+Fraction operator+(const Fraction f1, const Fraction f2){
+	Fraction left = f1;
+	Fraction right = f2;
 	rtcd(left, right);
 	Fraction result;
 	result.d = left.d;
@@ -74,9 +69,9 @@ Fraction Fraction::operator+(const Fraction &f1) const{
 	return result;
 }
 
-Fraction Fraction::operator-(const Fraction &f1) const{
-	Fraction left = *this;
-	Fraction right = f1;
+Fraction operator-(const Fraction f1, const Fraction f2){
+	Fraction left = f1;
+	Fraction right = f2;
 	rtcd(right, left);
 	Fraction result;
 	result.d = right.d;
@@ -85,18 +80,18 @@ Fraction Fraction::operator-(const Fraction &f1) const{
 	return result;
 }
 
-Fraction Fraction::operator*(const Fraction &f1) const{
+Fraction operator*(const Fraction f1, const Fraction f2){
 	Fraction result;
-	result.d = this->d * f1.d;
-	result.n = this->n * f1.n;
+	result.d = f1.d * f2.d;
+	result.n = f1.n * f2.n;
 	result.reduce();
 	return result;
 }
 
-Fraction Fraction::operator/(const Fraction &f1) const{
+Fraction operator/(const Fraction f1, const Fraction f2){
 	Fraction result;
-	result.d = this->d * f1.n;
-	result.n = this->n * f1.d;
+	result.d = f1.d * f2.n;
+	result.n = f1.n * f2.d;
 	result.reduce();
 	return result;
 }

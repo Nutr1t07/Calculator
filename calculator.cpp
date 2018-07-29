@@ -3,36 +3,44 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
-#include <set>
+#include <unordered_set>
 #include "fraction.h"
 
 using namespace std;
 
-string basic_calculate(size_t begin, size_t count, string str);
-string bracket_process(size_t begin, size_t count, string str);
-
+string basic_calculate(string str);
+string bracket_process(string str);
+Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left);
 void print_error(string error);
 
-inline Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left);
-
 int main(){
-	string str = "";
+	string str;
 	while(cout << "Enter the expression: " && getline(cin, str)){
 		str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());	//去除表达式中的空格。
-		str = bracket_process(0, str.size(), str);							//处理空格。
-		string answer = basic_calculate(0, str.size(), str);
+		str = bracket_process(str);											//处理空格。
+		string answer = basic_calculate(str);
 		cout << "The answer is: " << answer << "\n" << endl;
 	}
 }
 
 
 //基本运算。
-string basic_calculate(size_t begin, size_t count, string str){
-	string cal_str(str.substr(begin, count));
+string basic_calculate(string cal_str){
 	size_t found;				//运算符号位置。
 	size_t length;				//计算对象长度。
 	size_t st_left, st_right;	//执行运算部分的起始位置。
 	Fraction left, right, result;	//运算符左右侧数字以及计算结果。
+
+	//执行四级运算(函数运算)。
+	unordered_set<string> func{
+		"sin",
+		"cos",
+		"tan",
+		"cot",
+		"sec",
+		"csc"
+	};
+
 	
 
 	//执行三级运算(幂运算)。
@@ -123,22 +131,21 @@ string basic_calculate(size_t begin, size_t count, string str){
 }
 
 //处理括号内的数据。
-string bracket_process(size_t begin, size_t count, string pending_str){
-	string str(pending_str.substr(begin, count));
-	auto front1_brac = str.find_first_of("{[(");
-	if(front1_brac != string::npos){
-		auto front2_brac = str.find_first_of("{[(", front1_brac + 1);
-		if(front2_brac != string::npos){
+string bracket_process(string str){
+	auto front1_brac = str.find_first_of("{[(");					//寻找第一个括号。
+	if(front1_brac != string::npos){								//如果找到了括号：
+		auto front2_brac = str.find_first_of("{[(", front1_brac + 1);		
+		if(front2_brac != string::npos){								//如果有第二个括号：
 			string str2 = str.substr(front2_brac);
-			str.erase(front2_brac, str2.size());
-			str2 = bracket_process(0, str2.size(), str2);
-			str += str2;
+			size_t str2_size = str2.size();
+			str2 = bracket_process(str2);									//对第二个括号后进行递归。
+			str.replace(front2_brac, str2_size, str2);						//将处理后的字符串替换掉原字符串。
 		}
-		auto back1_bracket = str.find_first_of("}])");
+		auto back1_bracket = str.find_first_of("}])");					//寻找后括号。
 
 		if(back1_bracket != string::npos){
-			string calculated_str = basic_calculate(front1_brac + 1, back1_bracket - front1_brac - 1, pending_str);
-			str.replace(front1_brac, back1_bracket - front1_brac + 1, calculated_str);
+			string caled_str = basic_calculate(str.substr(front1_brac + 1, back1_bracket - front1_brac - 1));
+			str.replace(front1_brac, back1_bracket - front1_brac + 1, caled_str);
 		}
 
 	}
@@ -146,11 +153,11 @@ string bracket_process(size_t begin, size_t count, string pending_str){
 }
 
 
-inline Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left){
+Fraction get_operands(const string str, const size_t found, Fraction &right, size_t &length, size_t &st_left){
 	Fraction left;
 	st_left = found;
 	size_t st_right = found;
-	set<char> exclusions{'+', '-', '*', '/', '^', '!'};
+	unordered_set<char> exclusions{'+', '-', '*', '/', '^', '!'};
 	while(st_left != 0){
 		if(exclusions.find(str[st_left - 1]) == exclusions.end()){
 			--st_left;
