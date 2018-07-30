@@ -43,27 +43,29 @@ string basic_calculate(string cal_str){
 
 	
 
-	//执行三级运算(幂运算)。
+	//执行三级运算。
 	found = cal_str.find_first_of("^!");
 	while(found != string::npos){
 		left = get_operands(cal_str, found, right, length, st_left);
 		if(cal_str[found] == '^'){
-			result = left;
 			if(right.n == 0){
 				result.n = 1;
 				result.d = 1;
 			}
-			else if(right.n > 0){
-				while(--right.n != 0){
-					result = result * left;
+			else{
+				result = Fraction("1");
+				Wint zero(0);
+				while(right.n != zero){
+					if(right.n[right.n.size() - 1] % 2)
+						result = result * left;
+					left = left * left;
+					right.n = right.n / 2;
 				}
+				if(right.n < 0){
+					result = Fraction() / result;
+				}	
 			}
-			else if(right.n < 0){
-				while(++right.n != 0){
-					result = result * left;
-				}
-				result = Fraction() / result;
-			}
+			
 			cal_str.replace(st_left, length, to_string(result));
 		}
 		else if(cal_str[found] == '!'){

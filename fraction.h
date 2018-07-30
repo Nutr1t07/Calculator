@@ -12,8 +12,9 @@ struct Fraction;
 string to_string(Fraction &fract);
 
 struct Fraction{
-	Wint n;		//分子。
+	Wint n = 1;		//分子。
 	Wint d = 1;		//分母。
+
 	Fraction() = default;
 	Fraction(string str){
 		size_t found;

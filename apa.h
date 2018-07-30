@@ -9,6 +9,7 @@ using namespace std;
 
 struct Wint;
 string to_string(const Wint wint);
+
 bool operator==(const Wint &w1, const Wint &w2);
 bool operator!=(const Wint &w1, const Wint &w2);
 bool operator>(const Wint &w1, const Wint &w2);
@@ -28,7 +29,7 @@ const int PRECISION = 4;	//精度。
 
 struct Wint : vector<int>
 {
-	bool isNegative = 0;
+	bool isNegative = 0;	//是否为负数。
 
 	Wint() = default;
 	Wint(string str){
@@ -38,7 +39,10 @@ struct Wint : vector<int>
 				isNegative = 1;
 			str.erase(sign, 1);
 		}
+
 		auto len = str.size();
+
+		//压位。
 		while(len / PRECISION){
 			len -= PRECISION;
 			push_back(stoi(str.substr(len, PRECISION)));
@@ -58,7 +62,7 @@ struct Wint : vector<int>
 		resize(size, n);
 	}
 
-	Wint &carry(){
+	Wint &carry(){		//进位。
 		if(empty())
 			return *this;
 		for(int i = 1; i < size(); ++i){
@@ -85,13 +89,13 @@ struct Wint : vector<int>
 	}
 
 	Wint& operator+=(const Wint &w1){
-		resize(max(size(), w1.size()));
+		resize(max(size(), w1.size()));		//将储存结果的容器的长度设为最大值。
 		if(this->isNegative + w1.isNegative != 1){	//若同号：
 			for(int i = 0; i < size(); ++i){
-				(*this)[i] = (*this)[i] + w1[i];
+				(*this)[i] = (*this)[i] + w1[i];		//位权相同的两元素相加。
 			}
 		}
-		else{
+		else{										//若异号：(两数相减)
 			Wint left = *this, right = w1;
 			if(left.isNegative){
 				left.isNegative = 0;
@@ -111,16 +115,19 @@ struct Wint : vector<int>
 		left = *this;
 		right = w1;
 		if(left.isNegative + right.isNegative == 1){	//若两数异号：
+			//将两数的符号转为正，再将两数相加。
 			if(left.isNegative){
 				left.isNegative = 0;
-				return *this = left + right;
 			}
 			else{
 				right.isNegative = 0;
-				return *this = left + right;
 			}
+			*this = left + right;
+			this->isNegative = 1;
+			return *this;
 		}
-		if(left.isNegative){		//若同为负：
+		if(left.isNegative){					//若两数同为负数：
+			left.isNegative = 0;
 			right.isNegative = 0;
 			return *this = left + right;
 		}
@@ -145,7 +152,7 @@ struct Wint : vector<int>
 			else
 				back() = 0 - back();
 		}
-		return *this;
+		return carry();
 	}
 
 	Wint& operator*=(const Wint &w1){
@@ -264,7 +271,7 @@ Wint operator*(const Wint w1, const Wint w2){
 	ans.carry();
 	if(w1.isNegative + w2.isNegative == 1)
 		ans.isNegative = 1;
-	return ans;
+	return ans.carry();
 }
 
 Wint operator/(const Wint w1, const Wint w2){
@@ -296,7 +303,7 @@ Wint operator/(const Wint w1, const Wint w2){
 	Wint ans(result);
 	if(w1.isNegative + w2.isNegative == 1)
 		ans.isNegative = 1;
-	return ans;
+	return ans.carry();
 }
 
 Wint operator%(const Wint w1, const Wint w2){
