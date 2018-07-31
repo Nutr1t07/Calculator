@@ -66,23 +66,14 @@ struct Wint : vector<int>
 		if(empty())
 			return *this;
 		for(int i = 1; i < size(); ++i){
-			if((*this)[i-1] < 0){
-				((*this)[i-1] = SCALE + (*this)[i-1]);
-				if((*this)[i] < 0)
-					(*this)[i] += 1;
-				else
-					(*this)[i] -= 1;
-			}
 			(*this)[i] += (*this)[i-1] / SCALE;
 			(*this)[i-1] %= SCALE;
 		}
-
-		while(back() / SCALE){
+		while(back() / SCALE){			//若最高位没有进位：
 			push_back(back() / SCALE);
 			(*this)[size()-2] %= SCALE;
 		}
-		while(back() == 0){
-
+		while(back() == 0){				//去除为零的最高位。
 			pop_back();
 		}
 		return *this;
@@ -118,20 +109,21 @@ struct Wint : vector<int>
 			//将两数的符号转为正，再将两数相加。
 			if(left.isNegative){
 				left.isNegative = 0;
+				*this = left + right;
+				this->isNegative = 1;		//将两数相加的结果转为负数。
 			}
 			else{
 				right.isNegative = 0;
+				*this = left + right;
 			}
-			*this = left + right;
-			this->isNegative = 1;
 			return *this;
 		}
 		if(left.isNegative){					//若两数同为负数：
-			left.isNegative = 0;
-			right.isNegative = 0;
+			left.isNegative = right.isNegative = 0;
 			return *this = left + right;
 		}
 
+		//若左数比右数小，则将左右顺序颠倒。
 		bool reverse = 0;
 		if(w1 > *this){
 			reverse = 1;
@@ -139,19 +131,15 @@ struct Wint : vector<int>
 			right = *this;
 		}
 
+		//将位权相等的数相减。
 		resize(max_size);
 		for(int i = 0; i < max_size; ++i){
 			(*this)[i] = left[i] - right[i];
 		}
 
 		carry();
-		if(reverse){
-			if((0 - back()) < 0){
-				isNegative = 1;
-			}
-			else
-				back() = 0 - back();
-		}
+		if(reverse)
+			isNegative = 1;
 		return carry();
 	}
 
@@ -167,12 +155,12 @@ struct Wint : vector<int>
 		return *this = *this % w1;
 	}
 
-
+	//前置递增运算符。
 	Wint& operator++(){
 		*this += 1;
 		return *this;
 	}
-
+	//后置递增运算符。
 	Wint operator++(int){
 		Wint wint = *this;
 		*this += 1;
@@ -192,19 +180,19 @@ struct Wint : vector<int>
 };
 
 string to_string(const Wint wint){
-	Wint copy;
-	copy.resize(wint.size());
-	reverse_copy(wint.begin(), wint.end(), copy.begin());
 	string result;
 	for(auto n : wint){
 		string ns(to_string(n));
+		//用0填充空白。
 		result = string(PRECISION - ns.size(), '0') + ns + result;
 	}
-	result.erase(result.begin(), find_if(result.begin(), result.end(),[](char ch){ return ch != '0'; }));
+	//去掉最高位上的0。
+	result.erase(result.begin(), find_if(result.begin(), result.end(),
+		[](char ch){ return ch != '0'; }));
 	if(result == "")
 		return "0";
 	if(wint.isNegative)
-		result = '-' + result;
+		result = "-" + result;
 	return result;
 }
 
@@ -222,7 +210,7 @@ bool operator!=(const Wint &w1, const Wint &w2){
 	return !(w1 == w2);
 }
 
-bool operator>(const Wint &w1, const Wint &w2){
+bool operator<(const Wint &w1, const Wint &w2){
 	if((w1.isNegative + w2.isNegative) == 1){	//若两数异号：
 		return w1.isNegative;
 	}
@@ -232,16 +220,15 @@ bool operator>(const Wint &w1, const Wint &w2){
 		right = w1;
 	}
 	if(left.size() != right.size())
-		return left.size() > right.size();
-	int max_size(max(left.size(), right.size()));
+		return left.size() < right.size();
 	for(int i = left.size() - 1; i >= 0; --i)
 		if(left[i] != right[i])
-			return left[i] > right[i];
+			return left[i] < right[i];
 	return 0;
 }
 
-bool operator<(const Wint &w1, const Wint &w2){
-	return (w2 > w1);
+bool operator>(const Wint &w1, const Wint &w2){
+	return w2 < w1;
 }
 
 bool operator>=(const Wint &w1, const Wint &w2){
@@ -254,13 +241,13 @@ bool operator<=(const Wint &w1, const Wint &w2){
 
 
 Wint operator+(const Wint w1, const Wint w2){
-	Wint left = w1;
-	return left += w2;
+	Wint ans = w1;
+	return ans += w2;
 }
 
 Wint operator-(const Wint w1, const Wint w2){
-	Wint left = w1;
-	return left -= w2;
+	Wint ans = w1;
+	return ans -= w2;
 }
 
 Wint operator*(const Wint w1, const Wint w2){

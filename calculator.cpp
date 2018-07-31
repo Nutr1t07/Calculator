@@ -41,7 +41,7 @@ string basic_calculate(string cal_str){
 		"csc"
 	};
 
-	
+
 
 	//执行三级运算。
 	found = cal_str.find_first_of("^!");
@@ -63,9 +63,9 @@ string basic_calculate(string cal_str){
 				}
 				if(right.n < 0){
 					result = Fraction() / result;
-				}	
+				}
 			}
-			
+
 			cal_str.replace(st_left, length, to_string(result));
 		}
 		else if(cal_str[found] == '!'){
@@ -83,11 +83,11 @@ string basic_calculate(string cal_str){
 			}
 			else{
 				Wint ans(1);
-				for(int i = 1; left.n != i-1; ++i)
+				left.n += 1;
+				for(int i = 1; i != left.n; ++i)
 					ans *= i;
 				length = found - st_left + 2;
 				result.n = ans;
-
 			}
 		}
 		cal_str.replace(st_left, length, to_string(result));
@@ -136,7 +136,7 @@ string basic_calculate(string cal_str){
 string bracket_process(string str){
 	auto front1_brac = str.find_first_of("{[(");					//寻找第一个括号。
 	if(front1_brac != string::npos){								//如果找到了括号：
-		auto front2_brac = str.find_first_of("{[(", front1_brac + 1);		
+		auto front2_brac = str.find_first_of("{[(", front1_brac + 1);
 		if(front2_brac != string::npos){								//如果有第二个括号：
 			string str2 = str.substr(front2_brac);
 			size_t str2_size = str2.size();
