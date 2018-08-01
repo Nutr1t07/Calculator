@@ -17,6 +17,9 @@ struct Fraction{
 
 	Fraction() = default;
 	Fraction(string str){
+		if(str == ""){
+			return;
+		}
 		size_t found;
 		found = str.find('.');
 		if(found != string::npos){
