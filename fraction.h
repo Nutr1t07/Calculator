@@ -1,7 +1,6 @@
 #ifndef FRACTION_H
 
 #define FRACTION_H
-#include <iostream>
 #include <string>
 #include <cmath>
 #include "apa.h"

@@ -1,7 +1,6 @@
 #ifndef APA_H
 
 #define APA_H
-#include <iostream>
 #include <vector>
 #include <algorithm>
 
