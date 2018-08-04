@@ -36,14 +36,17 @@ struct Fraction{
 		}
 		n = str;
 	}
+	Fraction(int i){
+		n = i;
+	}
 
 	Fraction& reduce(){					//约分。
 		if(d == 1)
 			return *this;
 		Wint n_copy = n, d_copy = d;
-		if(n.isNegative + d.isNegative != 1)
-			n.isNegative = d.isNegative = 0;
-		n_copy.isNegative = d_copy.isNegative = 0;
+		if(n.isNeg + d.isNeg != 1)
+			n.isNeg = d.isNeg = 0;
+		n_copy.isNeg = d_copy.isNeg = 0;
 		Wint cd = gcd(n_copy, d_copy);
 		n /= cd;
 		d /= cd;

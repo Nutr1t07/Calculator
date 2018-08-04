@@ -25,6 +25,33 @@ Fraction devide(const Fraction &f1, const Fraction &f2){
 	return f1 / f2;
 }
 
+Fraction pow(const Fraction &f1, const Fraction &f2){
+	Fraction result("1");
+	Fraction base(f1);
+	Wint expo(f2.n);
+	expo.isNeg = 0;
+	while(expo != 0){
+		if(expo[expo.size() - 1] % 2 == 1) 
+			result = result * base;
+		base = base * base;
+		expo = expo / 2;
+	}
+	if(f2.n.isNeg)
+		result = Fraction(1) / result;
+	return result;
+}
+
+int comp(char &ch){
+	switch(ch){
+		case '+':
+		case '-':
+			return 0;
+		case '*':
+		case '/':
+			return 1;
+	}
+}
+
 unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
 	{"+", add},
 	{"-", sub},
@@ -33,7 +60,22 @@ unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
 
 };
 
-stack<string> transform(const string &str){
+void			repair(string &str){
+	size_t found = str.find_first_of("+-");
+	while(found != string::npos){
+		if(!isdigit(str[found - 1])){
+			str.insert(found, "(0");
+			found += 2;
+			size_t num_end = found + 1;
+			for(; num_end != str.size() && (isdigit(str[num_end]) || str[num_end] == '.'); ++num_end);
+			str.insert(num_end, ")");
+		cout << "str: " << str << std::endl;
+		}
+		found = str.find_first_of("+-", found + 1);
+	}
+}
+
+stack<string>	transform(const string &str){
 	stack<char> opers;
 	stack<string> nums;
 	for(auto iter = str.cbegin(); iter != str.cend(); ++iter){
@@ -63,8 +105,10 @@ stack<string> transform(const string &str){
 			continue;
 		}
 
-		if(ch > 64 && ch < 90){			//若遇到函数：
-			//还不知道怎么搞..
+		if((ch > 64 && ch < 90) || ch == '!'){			//若遇到函数(字母)：
+			if(ch == '!'){
+
+			}
 		}
 
 		//若遇到运算符：
@@ -72,12 +116,12 @@ stack<string> transform(const string &str){
 			opers.push(ch);
 			continue;
 		}
-		if(ch >= opers.top()){
+		if(comp(ch) >= comp(opers.top())){
 			opers.push(ch);
 			continue;
 		}
 		else{
-			while(!opers.empty() && ch < opers.top()){
+			while(!opers.empty() && comp(ch) < comp(opers.top())){
 				nums.push(string(1, opers.top()));
 				opers.pop();
 				if(opers.top() == '(' || opers.empty()){
@@ -98,8 +142,8 @@ stack<string> transform(const string &str){
 	return nums;
 }
 
-string calculate(string str){
-
+string			calculate(string str){
+	repair(str);
 	stack<string> s1 = transform(str);
 	stack<string> reverse_s1;
 	stack<string> sum;
@@ -121,4 +165,5 @@ string calculate(string str){
 	}
 	return sum.top();
 }
+
 #endif

@@ -28,14 +28,14 @@ const int PRECISION = 4;	//精度。
 
 struct Wint : vector<int>
 {
-	bool isNegative = 0;	//是否为负数。
+	bool isNeg = 0;	//是否为负数。
 
 	Wint() = default;
 	Wint(string str){
 		size_t sign = str.find_first_of("+-");
 		if(sign != string::npos){
 			if(str[sign] == '-')
-				isNegative = 1;
+				isNeg = 1;
 			str.erase(sign, 1);
 		}
 
@@ -51,7 +51,7 @@ struct Wint : vector<int>
 	}
 	Wint(int num){
 		if(num < 0){
-			isNegative = 1;
+			isNeg = 1;
 			num = 0 - num;
 		}
 		push_back(num);
@@ -80,19 +80,19 @@ struct Wint : vector<int>
 
 	Wint& operator+=(const Wint &w1){
 		resize(max(size(), w1.size()));		//将储存结果的容器的长度设为最大值。
-		if(this->isNegative + w1.isNegative != 1){	//若同号：
+		if(this->isNeg + w1.isNeg != 1){	//若同号：
 			for(int i = 0; i < size(); ++i){
 				(*this)[i] = (*this)[i] + w1[i];		//位权相同的两元素相加。
 			}
 		}
 		else{										//若异号：(两数相减)
 			Wint left = *this, right = w1;
-			if(left.isNegative){
-				left.isNegative = 0;
+			if(left.isNeg){
+				left.isNeg = 0;
 				*this = right - left;
 			}
 			else{
-				right.isNegative = 0;
+				right.isNeg = 0;
 				*this = left - right;
 			}
 		}
@@ -104,21 +104,21 @@ struct Wint : vector<int>
 		Wint left(max_size, 0), right(max_size, 0);
 		left = *this;
 		right = w1;
-		if(left.isNegative + right.isNegative == 1){	//若两数异号：
+		if(left.isNeg + right.isNeg == 1){	//若两数异号：
 			//将两数的符号转为正，再将两数相加。
-			if(left.isNegative){
-				left.isNegative = 0;
+			if(left.isNeg){
+				left.isNeg = 0;
 				*this = left + right;
-				this->isNegative = 1;		//将两数相加的结果转为负数。
+				this->isNeg = 1;		//将两数相加的结果转为负数。
 			}
 			else{
-				right.isNegative = 0;
+				right.isNeg = 0;
 				*this = left + right;
 			}
 			return *this;
 		}
-		if(left.isNegative){					//若两数同为负数：
-			left.isNegative = right.isNegative = 0;
+		if(left.isNeg){					//若两数同为负数：
+			left.isNeg = right.isNeg = 0;
 			return *this = left + right;
 		}
 
@@ -138,7 +138,7 @@ struct Wint : vector<int>
 
 		carry();
 		if(reverse)
-			isNegative = 1;
+			isNeg = 1;
 		return carry();
 	}
 
@@ -190,7 +190,7 @@ string to_string(const Wint wint){
 		[](char ch){ return ch != '0'; }));
 	if(result == "")
 		return "0";
-	if(wint.isNegative)
+	if(wint.isNeg)
 		result = "-" + result;
 	return result;
 }
@@ -210,11 +210,11 @@ bool operator!=(const Wint &w1, const Wint &w2){
 }
 
 bool operator<(const Wint &w1, const Wint &w2){
-	if((w1.isNegative + w2.isNegative) == 1){	//若两数异号：
-		return w1.isNegative;
+	if((w1.isNeg + w2.isNeg) == 1){	//若两数异号：
+		return w1.isNeg;
 	}
 	Wint left = w1, right = w2;
-	if(w1.isNegative == 1){	//若两数同为负：
+	if(w1.isNeg == 1){	//若两数同为负：
 		left = w2;
 		right = w1;
 	}
@@ -255,15 +255,15 @@ Wint operator*(const Wint w1, const Wint w2){
 		for(int j = 0; j < w2.size(); ++j)
 			ans[i+j] = w1[i] * w2[j];
 	ans.carry();
-	if(w1.isNegative + w2.isNegative == 1)
-		ans.isNegative = 1;
+	if(w1.isNeg + w2.isNeg == 1)
+		ans.isNeg = 1;
 	return ans.carry();
 }
 
 Wint operator/(const Wint w1, const Wint w2){
 	Wint left = w1, right = w2;
-	left.isNegative = 0;
-	right.isNegative = 0;
+	left.isNeg = 0;
+	right.isNeg = 0;
 	string s1(to_string(left));
 	string s2(to_string(right));
 
@@ -287,15 +287,15 @@ Wint operator/(const Wint w1, const Wint w2){
 		--PRECISION;
 	}
 	Wint ans(result);
-	if(w1.isNegative + w2.isNegative == 1)
-		ans.isNegative = 1;
+	if(w1.isNeg + w2.isNeg == 1)
+		ans.isNeg = 1;
 	return ans.carry();
 }
 
 Wint operator%(const Wint w1, const Wint w2){
 	Wint left = w1, right = w2;
-	left.isNegative = 0;
-	right.isNegative = 0;
+	left.isNeg = 0;
+	right.isNeg = 0;
 	if(left < right){
 		left = w1;
 		right = w2;
