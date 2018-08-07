@@ -7,7 +7,6 @@
 #include <functional>
 #include <unordered_map>
 #include "fraction.h"
-#include <iostream>
 
 Fraction add(const Fraction &f1, const Fraction &f2){
 	return f1 + f2;
@@ -60,7 +59,7 @@ unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
 
 };
 
-void			repair(string &str){
+string repair(string str){
 	size_t found = str.find_first_of("+-");
 	while(found != string::npos){
 		if(!isdigit(str[found - 1])){
@@ -69,13 +68,14 @@ void			repair(string &str){
 			size_t num_end = found + 1;
 			for(; num_end != str.size() && (isdigit(str[num_end]) || str[num_end] == '.'); ++num_end);
 			str.insert(num_end, ")");
-		cout << "str: " << str << std::endl;
+
 		}
 		found = str.find_first_of("+-", found + 1);
 	}
+	return str;
 }
 
-stack<string>	transform(const string &str){
+stack<string> transform(const string str){
 	stack<char> opers;
 	stack<string> nums;
 	for(auto iter = str.cbegin(); iter != str.cend(); ++iter){
@@ -142,15 +142,18 @@ stack<string>	transform(const string &str){
 	return nums;
 }
 
-string			calculate(string str){
-	repair(str);
-	stack<string> s1 = transform(str);
+string calculate(string str){
+	stack<string> s1 = transform(repair(str));
 	stack<string> reverse_s1;
 	stack<string> sum;
 	while(!s1.empty()){
 		reverse_s1.push(s1.top());
 		s1.pop();
 	}
+	// while(!reverse_s1.empty()){
+	// 	cout << reverse_s1.top() << " ";
+	// 	reverse_s1.pop();
+	// }
 	while(!reverse_s1.empty()){
 		if(isdigit(reverse_s1.top()[0]))
 			sum.push(reverse_s1.top());
@@ -158,8 +161,9 @@ string			calculate(string str){
 			Fraction right(sum.top());
 			sum.pop();
 			Fraction left(sum.top());
+			sum.pop();
 			Fraction ans = operators[reverse_s1.top()](left, right);
-			sum.push(to_string(ans));
+			sum.push(ans);
 		}
 		reverse_s1.pop();
 	}

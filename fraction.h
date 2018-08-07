@@ -2,15 +2,12 @@
 
 #define FRACTION_H
 #include <string>
-#include <cmath>
 #include "apa.h"
 
-using namespace std;
+class Fraction;
 
-struct Fraction;
-string to_string(Fraction &fract);
-
-struct Fraction{
+class Fraction{
+public:
 	Wint n = 1;		//分子。
 	Wint d = 1;		//分母。
 
@@ -22,9 +19,9 @@ struct Fraction{
 		size_t found;
 		found = str.find('.');
 		if(found != string::npos){
-			d = Wint("1" + string(str.size() - 2, '0'));
+			d = Wint("1" + string(str.size() - found - 1, '0'));
 			str.erase(found, 1);
-			n = str;
+			n = Wint(str);
 			reduce();
 			return;
 		}
@@ -34,20 +31,40 @@ struct Fraction{
 			d = str.substr(found + 1);
 			return;
 		}
-		n = str;
+		n = Wint(str);
 	}
 	Fraction(int i){
 		n = i;
 	}
 
+	operator string() const {
+		if(d == 1)
+			return n;
+		else{
+			//判断分数是否可以转为小数。
+			// Fraction f(n / d);
+			// if(f.n == n && f.d == d)
+			//  	return n / d;
+			// else
+				return static_cast<string>(n) + "|" + static_cast<string>(d);
+		}
+	}
+
 	Fraction& reduce(){					//约分。
 		if(d == 1)
 			return *this;
-		Wint n_copy = n, d_copy = d;
-		if(n.isNeg + d.isNeg != 1)
+		Wint cd;						//分子分母的公因数。
+		if(n.isNeg + d.isNeg != 1){		//若分子分母同号，将分数改为正数。
 			n.isNeg = d.isNeg = 0;
-		n_copy.isNeg = d_copy.isNeg = 0;
-		Wint cd = gcd(n_copy, d_copy);
+			cd = gcd(n, d);
+		}
+		else{							//取两数公因数，需要将两数改为非负数。
+			Wint n_copy(n), d_copy(d);	
+			n_copy.isNeg = d_copy.isNeg = 0;
+			cd = gcd(n_copy, d_copy);
+		}
+		if(cd == 1)
+			return *this;
 		n /= cd;
 		d /= cd;
 		return *this;
@@ -55,13 +72,12 @@ struct Fraction{
 };
 
 void rtcd(Fraction &f1, Fraction &f2){		//通分。
-	Wint a = lcm(f1.d, f2.d);
-	Wint f1_a = a / f1.d;
-	f1.d = a;
-	f1.n *= f1_a;
-	Wint f2_a = a / f2.d;
-	f2.d = a;
-	f2.n *= f2_a;
+	if(f1.d == f2.d)
+		return;
+	Wint cm = lcm(f1.d, f2.d);	//取最小公倍数。
+	f1.n *= cm / f1.d;	
+	f2.n *= cm / f2.d;	
+	f1.d = f2.d = cm;
 }
 
 Fraction operator+(const Fraction f1, const Fraction f2){
@@ -78,7 +94,7 @@ Fraction operator+(const Fraction f1, const Fraction f2){
 Fraction operator-(const Fraction f1, const Fraction f2){
 	Fraction left = f1;
 	Fraction right = f2;
-	rtcd(right, left);
+	rtcd(left, right);
 	Fraction result;
 	result.d = right.d;
 	result.n = left.n - right.n;
@@ -100,21 +116,6 @@ Fraction operator/(const Fraction f1, const Fraction f2){
 	result.n = f1.n * f2.d;
 	result.reduce();
 	return result;
-}
-
-string to_string(Fraction& fract){
-	if(fract.d == 1)
-		return to_string(fract.n);
-	else{
-		//判断分数是否可以转为小数。
-		Fraction f(to_string(fract.n / fract.d));
-
-		if(f.n == fract.n && f.d == fract.d)
-		 	return to_string(fract.n / fract.d);
-		else{
-			return to_string(fract.n) + "|" + to_string(fract.d);
-		}
-	}
 }
 
 #endif

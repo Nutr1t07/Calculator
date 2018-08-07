@@ -6,8 +6,7 @@
 
 using namespace std;
 
-struct Wint;
-string to_string(const Wint wint);
+class Wint;
 
 bool operator==(const Wint &w1, const Wint &w2);
 bool operator!=(const Wint &w1, const Wint &w2);
@@ -26,8 +25,9 @@ Wint operator%(const Wint w1, const Wint w2);
 const int SCALE = 10000;	//进制。
 const int PRECISION = 4;	//精度。
 
-struct Wint : vector<int>
+class Wint : public vector<int>
 {
+public:
 	bool isNeg = 0;	//是否为负数。
 
 	Wint() = default;
@@ -40,7 +40,6 @@ struct Wint : vector<int>
 		}
 
 		auto len = str.size();
-
 		//压位。
 		while(len / PRECISION){
 			len -= PRECISION;
@@ -61,10 +60,27 @@ struct Wint : vector<int>
 		resize(size, n);
 	}
 
+	operator string() const{
+		string result;
+		for(auto n : *this){
+			string ns(to_string(n));
+			//用0填充空白。
+			result = string(PRECISION - ns.size(), '0') + ns + result;
+		}
+		//去掉最高位上的0。
+		result.erase(result.begin(), find_if(result.begin(), result.end(),
+			[](char ch){ return ch != '0'; }));
+		if(result == "")
+			return "0";
+		if(this->isNeg)
+			result = "-" + result;
+		return result;
+	}
+
 	Wint &carry(){		//进位。
 		if(empty())
 			return *this;
-		for(int i = 1; i < size(); ++i){
+		for(unsigned int i = 1; i < size(); ++i){
 			(*this)[i] += (*this)[i-1] / SCALE;
 			(*this)[i-1] %= SCALE;
 		}
@@ -72,7 +88,7 @@ struct Wint : vector<int>
 			push_back(back() / SCALE);
 			(*this)[size()-2] %= SCALE;
 		}
-		while(back() == 0){				//去除为零的最高位。
+		while(back() == 0 && size() != 1){				//去除为零的最高位。
 			pop_back();
 		}
 		return *this;
@@ -81,7 +97,7 @@ struct Wint : vector<int>
 	Wint& operator+=(const Wint &w1){
 		resize(max(size(), w1.size()));		//将储存结果的容器的长度设为最大值。
 		if(this->isNeg + w1.isNeg != 1){	//若同号：
-			for(int i = 0; i < size(); ++i){
+			for(unsigned int i = 0; i < size(); ++i){
 				(*this)[i] = (*this)[i] + w1[i];		//位权相同的两元素相加。
 			}
 		}
@@ -124,7 +140,7 @@ struct Wint : vector<int>
 
 		//若左数比右数小，则将左右顺序颠倒。
 		bool reverse = 0;
-		if(w1 > *this){
+		if(*this < w1){
 			reverse = 1;
 			left = w1;
 			right = *this;
@@ -178,27 +194,10 @@ struct Wint : vector<int>
 	}
 };
 
-string to_string(const Wint wint){
-	string result;
-	for(auto n : wint){
-		string ns(to_string(n));
-		//用0填充空白。
-		result = string(PRECISION - ns.size(), '0') + ns + result;
-	}
-	//去掉最高位上的0。
-	result.erase(result.begin(), find_if(result.begin(), result.end(),
-		[](char ch){ return ch != '0'; }));
-	if(result == "")
-		return "0";
-	if(wint.isNeg)
-		result = "-" + result;
-	return result;
-}
-
 bool operator==(const Wint &w1, const Wint &w2){
 	if(w1.size() != w2.size())
 		return 0;
-	for(int i = 0; i < w1.size(); ++i){
+	for(unsigned int i = 0; i < w1.size(); ++i){
 		if(w1[i] != w2[i])
 			return 0;
 	}
@@ -251,8 +250,8 @@ Wint operator-(const Wint w1, const Wint w2){
 
 Wint operator*(const Wint w1, const Wint w2){
 	Wint ans(w1.size() + w2.size(), 0);
-	for(int i = 0; i < w1.size(); ++i)
-		for(int j = 0; j < w2.size(); ++j)
+	for(unsigned int i = 0; i < w1.size(); ++i)
+		for(unsigned int j = 0; j < w2.size(); ++j)
 			ans[i+j] = w1[i] * w2[j];
 	ans.carry();
 	if(w1.isNeg + w2.isNeg == 1)
@@ -264,8 +263,8 @@ Wint operator/(const Wint w1, const Wint w2){
 	Wint left = w1, right = w2;
 	left.isNeg = 0;
 	right.isNeg = 0;
-	string s1(to_string(left));
-	string s2(to_string(right));
+	string s1(left);
+	string s2(right);
 
 	int s2_length = s2.size();
 	int PRECISION = 0;
@@ -289,31 +288,21 @@ Wint operator/(const Wint w1, const Wint w2){
 	Wint ans(result);
 	if(w1.isNeg + w2.isNeg == 1)
 		ans.isNeg = 1;
-	return ans.carry();
+	return ans;
 }
 
-Wint operator%(const Wint w1, const Wint w2){
-	Wint left = w1, right = w2;
-	left.isNeg = 0;
-	right.isNeg = 0;
-	if(left < right){
-		left = w1;
-		right = w2;
-	}
-
-	Wint wint = left / right;
-	wint *= w2;
-	return left - wint;
+Wint operator%(Wint w1, Wint w2){
+	w1.isNeg = w2.isNeg = 0;
+	return w1 - (w1 / w2) * w2;
 }
 
-Wint gcd(const Wint m, const Wint n){		//最大公因数。
-	if(n.size() == 0){
+Wint gcd(const Wint &m, const Wint &n){		//最大公因数。
+	if(n == 0)
 		return m;
-	}
 	return gcd(n, m%n);
 }
 
-Wint lcm(const Wint m, const Wint n){		//最小公倍数。
+Wint lcm(const Wint &m, const Wint &n){		//最小公倍数。
 	return m * n / gcd(m, n);
 }
 
