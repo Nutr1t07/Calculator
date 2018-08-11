@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include "fraction.h"
 
+// #include <iostream>
+
 Fraction add(const Fraction &f1, const Fraction &f2){
 	return f1 + f2;
 }
@@ -24,7 +26,7 @@ Fraction devide(const Fraction &f1, const Fraction &f2){
 	return f1 / f2;
 }
 
-Fraction pow(const Fraction &f1, const Fraction &f2){
+Fraction power(const Fraction &f1, const Fraction &f2){
 	Fraction result("1");
 	Fraction base(f1);
 	Wint expo(f2.n);
@@ -49,6 +51,7 @@ int comp(char &ch){
 		case '/':
 			return 1;
 	}
+	return -1;
 }
 
 unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
@@ -56,22 +59,23 @@ unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
 	{"-", sub},
 	{"*", mult},
 	{"/", devide},
+	{"^", power}
 
 };
 
 string repair(string str){
 	size_t found = str.find_first_of("+-");
 	while(found != string::npos){
-		if(!isdigit(str[found - 1])){
+		if((found == 0) || (str[found - 1] != ')' && !isdigit(str[found - 1]))){
 			str.insert(found, "(0");
 			found += 2;
 			size_t num_end = found + 1;
 			for(; num_end != str.size() && (isdigit(str[num_end]) || str[num_end] == '.'); ++num_end);
 			str.insert(num_end, ")");
-
 		}
 		found = str.find_first_of("+-", found + 1);
 	}
+
 	return str;
 }
 
@@ -80,9 +84,9 @@ stack<string> transform(const string str){
 	stack<string> nums;
 	for(auto iter = str.cbegin(); iter != str.cend(); ++iter){
 		char ch = *iter;
-		if(isdigit(ch) || ch == '.'){	//若遇到操作数：
+		if(isdigit(ch) || ch == '.' || ch == '|'){	//若遇到操作数：
 			string num;
-			while(isdigit(ch) || ch == '.'){
+			while(isdigit(ch) || ch == '.' || ch == '|'){
 				num += ch;
 				ch = *++iter;
 			}
