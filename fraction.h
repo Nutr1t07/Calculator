@@ -5,6 +5,13 @@
 #include "apa.h"
 
 class Fraction;
+void rtcd(Fraction &f1, Fraction &f2);
+
+Fraction operator+(const Fraction f1, const Fraction f2);
+Fraction operator-(const Fraction f1, const Fraction f2);
+Fraction operator*(const Fraction f1, const Fraction f2);
+Fraction operator/(const Fraction f1, const Fraction f2);
+Fraction operator%(const Fraction f1, const Fraction f2);
 
 class Fraction{
 public:
@@ -53,6 +60,11 @@ public:
 	Fraction& reduce(){					//约分。
 		if(d == 1)
 			return *this;
+		else if(d == 0){
+			this->d = 0;
+			this->n = 0;
+			return *this;
+		}
 		Wint cd;						//分子分母的公因数。
 		if(n.isNeg + d.isNeg != 1){		//若分子分母同号，将分数改为正数。
 			n.isNeg = d.isNeg = 0;
@@ -69,6 +81,36 @@ public:
 		d /= cd;
 		return *this;
 	}
+
+	Fraction& operator+=(Fraction right){
+		rtcd(*this, right);
+		this->n += right.n;
+		return this->reduce();
+	}
+
+	Fraction& operator-=(Fraction right){
+		rtcd(*this, right);
+		this->n -= right.n;
+		return this->reduce();
+	}
+
+	Fraction& operator*=(Fraction right){
+		this->n *= right.n;
+		this->d *= right.d;
+		return this->reduce();
+	}
+
+	Fraction& operator/=(Fraction right){
+		this->n *= right.d;
+		this->d *= right.n;
+		return this->reduce();
+	}
+
+	Fraction& operator%=(Fraction right){
+		if(this->d == right.d && this->d == 1)
+			this->n -= (this->n / right.n) * right.n;
+		return this->reduce();
+	}
 };
 
 void rtcd(Fraction &f1, Fraction &f2){		//通分。
@@ -81,41 +123,45 @@ void rtcd(Fraction &f1, Fraction &f2){		//通分。
 }
 
 Fraction operator+(const Fraction f1, const Fraction f2){
-	Fraction left = f1;
-	Fraction right = f2;
-	rtcd(left, right);
-	Fraction result;
-	result.d = left.d;
-	result.n = left.n + right.n;
-	result.reduce();
-	return result;
+	Fraction result(f1);
+	return result += f2;
 }
 
 Fraction operator-(const Fraction f1, const Fraction f2){
-	Fraction left = f1;
-	Fraction right = f2;
-	rtcd(left, right);
-	Fraction result;
-	result.d = right.d;
-	result.n = left.n - right.n;
-	result.reduce();
-	return result;
+	Fraction result(f1);
+	return result -= f2;
 }
 
 Fraction operator*(const Fraction f1, const Fraction f2){
-	Fraction result;
-	result.d = f1.d * f2.d;
-	result.n = f1.n * f2.n;
-	result.reduce();
-	return result;
+	Fraction result(f1);
+	return result *= f2;
 }
 
 Fraction operator/(const Fraction f1, const Fraction f2){
-	Fraction result;
-	result.d = f1.d * f2.n;
-	result.n = f1.n * f2.d;
-	result.reduce();
-	return result;
+	Fraction result(f1);
+	return result /= f2;
+}
+
+Fraction operator%(const Fraction f1, const Fraction f2){
+	Fraction result(f1);
+	return result %= f2;
+}
+
+bool operator<(Fraction f1, Fraction f2){
+	rtcd(f1, f2);
+	return f1.n < f2.n;
+}
+
+bool operator>(Fraction f1, Fraction f2){
+	return f2 < f1;
+}
+
+bool operator<=(Fraction f1, Fraction f2){
+	return !(f1 > f2);
+}
+
+bool operator>=(Fraction f1, Fraction f2){
+	return !(f1 < f2);
 }
 
 #endif

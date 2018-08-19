@@ -4,43 +4,9 @@
 
 #include <stack>
 #include <string>
-#include <functional>
 #include <unordered_map>
 #include "fraction.h"
-
-// #include <iostream>
-
-Fraction add(const Fraction &f1, const Fraction &f2){
-	return f1 + f2;
-}
-
-Fraction sub(const Fraction &f1, const Fraction &f2){
-	return f1 - f2;
-}
-
-Fraction mult(const Fraction &f1, const Fraction &f2){
-	return f1 * f2;
-}
-
-Fraction devide(const Fraction &f1, const Fraction &f2){
-	return f1 / f2;
-}
-
-Fraction power(const Fraction &f1, const Fraction &f2){
-	Fraction result("1");
-	Fraction base(f1);
-	Wint expo(f2.n);
-	expo.isNeg = 0;
-	while(expo != 0){
-		if(expo[expo.size() - 1] % 2 == 1) 
-			result = result * base;
-		base = base * base;
-		expo = expo / 2;
-	}
-	if(f2.n.isNeg)
-		result = Fraction(1) / result;
-	return result;
-}
+#include "operators.h"
 
 int comp(char &ch){
 	switch(ch){
@@ -54,28 +20,31 @@ int comp(char &ch){
 	return -1;
 }
 
-unordered_map<string, function<Fraction(Fraction, Fraction)>> operators{
-	{"+", add},
-	{"-", sub},
-	{"*", mult},
-	{"/", devide},
-	{"^", power}
+inline bool isNum(const char &ch){
+	return isdigit(ch) || ch == '.' || ch == '|';
+}
 
-};
-
+//将带符号的数字转成运算的形式，如: -1转为(0-1), --1转为(0-(0-1))。
+//错了。(下星期回来再修。)
 string repair(string str){
-	size_t found = str.find_first_of("+-");
+	size_t found = str.find_last_of("+-");
 	while(found != string::npos){
-		if((found == 0) || (str[found - 1] != ')' && !isdigit(str[found - 1]))){
-			str.insert(found, "(0");
-			found += 2;
-			size_t num_end = found + 1;
-			for(; num_end != str.size() && (isdigit(str[num_end]) || str[num_end] == '.'); ++num_end);
-			str.insert(num_end, ")");
-		}
-		found = str.find_first_of("+-", found + 1);
-	}
+		if((found == 0) || (str[found - 1] > 39 && str[found - 1] < 48 && str[found - 1] != ')') ){	//若该运算符前有运算符，则该运算符是符号。
+			str.insert(found, "(0");		//在符号前插入(0。
+			found += 2;						//调整found位置。
+			size_t num_end = found + 1;		//右运算对象的结束位置。
 
+			//-(0-1)的情况下，右运算对象是(0-1)。所以不仅要判断数字，还要判断括号。
+			for(; num_end != str.size() && (isNum(str[num_end]) || str[num_end] == '('); ++num_end);{
+				if(num_end != str.size() && str[num_end] == '(')
+					for(; num_end != str.size() && str[num_end] != ')'; ++num_end);
+			}
+			//循环结束后，num_end应该在最后的位置。
+			str.insert(num_end, ")");		
+		}
+		found = str.find_last_of("+-", found - 1);
+	}
+	cout << "str: " << str << endl;
 	return str;
 }
 
@@ -86,11 +55,14 @@ stack<string> transform(const string str){
 		char ch = *iter;
 		if(isdigit(ch) || ch == '.' || ch == '|'){	//若遇到操作数：
 			string num;
-			while(isdigit(ch) || ch == '.' || ch == '|'){
+			bool flag = 0;
+			while(iter != str.cend() && (isdigit(ch) || ch == '.' || ch == '|')){
+				flag = 1;
 				num += ch;
 				ch = *++iter;
 			}
-			--iter;
+			if(flag)
+				--iter;
 			nums.push(num);
 			continue;
 		}
@@ -109,34 +81,46 @@ stack<string> transform(const string str){
 			continue;
 		}
 
-		if((ch > 64 && ch < 90) || ch == '!'){			//若遇到函数(字母)：
-			if(ch == '!'){
-
+		//若遇到二元运算符：
+		if(opers2.find(string(1, ch)) != opers2.end()){
+			if(opers.empty() || opers.top() == '('){	//若运算符栈为空或栈顶为"(":
+				opers.push(ch);
+				continue;
 			}
-		}
-
-		//若遇到运算符：
-		if(opers.empty() || opers.top() == '('){
-			opers.push(ch);
-			continue;
-		}
-		if(comp(ch) >= comp(opers.top())){
-			opers.push(ch);
-			continue;
-		}
-		else{
-			while(!opers.empty() && comp(ch) < comp(opers.top())){
-				nums.push(string(1, opers.top()));
-				opers.pop();
-				if(opers.top() == '(' || opers.empty()){
+			else{
+				if(comp(ch) > comp(opers.top())){	//若当前运算符比运算符栈栈顶优先级高:
 					opers.push(ch);
-					break;
+					continue;
 				}
-				if(ch > opers.top()){
-					opers.push(ch);
-					break;
+				else{
+					//若非如此，将栈顶运算符弹出。
+					while(!opers.empty() && comp(ch) <= comp(opers.top())){
+						nums.push(string(1, opers.top()));
+						opers.pop();
+						if(opers.empty() || opers.top() == '(' || comp(ch) > comp(opers.top())){
+							opers.push(ch);
+							break;
+						}
+					}
 				}
 			}
+		}
+
+
+		string oper;
+		bool flag = 0;
+		while(iter != str.cend() && !isdigit(ch) && ch != '.' && ch != '|' && ch == '!'){
+			oper += ch;
+			ch = *++iter;
+			flag = 1;
+		}
+		if(flag) 
+			--iter;
+		if(opers1.find(oper) != opers1.end()){
+			Fraction ans(opers1.at(oper)(nums.top()));
+			nums.pop();
+			nums.push(ans);
+			continue;
 		}
 	}
 	while(!opers.empty()){
@@ -166,7 +150,7 @@ string calculate(string str){
 			sum.pop();
 			Fraction left(sum.top());
 			sum.pop();
-			Fraction ans = operators[reverse_s1.top()](left, right);
+			Fraction ans = opers2.at(reverse_s1.top())(left, right);
 			sum.push(ans);
 		}
 		reverse_s1.pop();
