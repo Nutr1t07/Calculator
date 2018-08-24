@@ -8,34 +8,20 @@
 #include "fraction.h"
 #include "operators.h"
 
-int comp(char &ch){
-	switch(ch){
-		case '+':
-		case '-':
-			return 0;
-		case '*':
-		case '/':
-			return 1;
-	}
-	return -1;
-}
-
 inline bool isNum(const char &ch){
 	return isdigit(ch) || ch == '.' || ch == '|';
 }
 
 //将带符号的数字转成运算的形式，如: -1转为(0-1), --1转为(0-(0-1))。
-//错了。(下星期回来再修。)
 string repair(string str){
 	size_t found = str.find_last_of("+-");
 	while(found != string::npos){
-		if((found == 0) || (str[found - 1] > 39 && str[found - 1] < 48 && str[found - 1] != ')') ){	//若该运算符前有运算符，则该运算符是符号。
+		if(found == 0 || (str[found - 1] > 39 && str[found - 1] < 48 && str[found - 1] != ')') ){	//若该运算符前有运算符，则该运算符是符号。
 			str.insert(found, "(0");		//在符号前插入(0。
 			found += 2;						//调整found位置。
 			size_t num_end = found + 1;		//右运算对象的结束位置。
-
 			//-(0-1)的情况下，右运算对象是(0-1)。所以不仅要判断数字，还要判断括号。
-			for(; num_end != str.size() && (isNum(str[num_end]) || str[num_end] == '('); ++num_end);{
+			for(; num_end != str.size() && (isNum(str[num_end]) || str[num_end] == '('); ++num_end){
 				if(num_end != str.size() && str[num_end] == '(')
 					for(; num_end != str.size() && str[num_end] != ')'; ++num_end);
 			}
@@ -44,7 +30,6 @@ string repair(string str){
 		}
 		found = str.find_last_of("+-", found - 1);
 	}
-	cout << "str: " << str << endl;
 	return str;
 }
 
@@ -53,7 +38,9 @@ stack<string> transform(const string str){
 	stack<string> nums;
 	for(auto iter = str.cbegin(); iter != str.cend(); ++iter){
 		char ch = *iter;
-		if(isdigit(ch) || ch == '.' || ch == '|'){	//若遇到操作数：
+
+		//若遇到操作数：
+		if(isdigit(ch) || ch == '.' || ch == '|'){	
 			string num;
 			bool flag = 0;
 			while(iter != str.cend() && (isdigit(ch) || ch == '.' || ch == '|')){
@@ -67,11 +54,12 @@ stack<string> transform(const string str){
 			continue;
 		}
 
+		//若遇到括号：
 		if(ch == '('){
 			opers.push(ch);
 			continue;
 		}
-		if(ch == ')'){
+		else if(ch == ')'){
 			while(opers.top() != '('){
 				nums.push(string(1, opers.top()));
 				opers.pop();
@@ -109,7 +97,7 @@ stack<string> transform(const string str){
 
 		string oper;
 		bool flag = 0;
-		while(iter != str.cend() && !isdigit(ch) && ch != '.' && ch != '|' && ch == '!'){
+		while(iter != str.cend() && !isNum(ch) && ch == '!'){
 			oper += ch;
 			ch = *++iter;
 			flag = 1;

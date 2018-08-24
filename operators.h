@@ -8,15 +8,36 @@
 #include "fraction.h"
 #include "apa.h"
 
-Fraction add(const Fraction &f1, const Fraction &f2);
-Fraction sub(const Fraction &f1, const Fraction &f2);
-Fraction mult(const Fraction &f1, const Fraction &f2);
-Fraction devide(const Fraction &f1, const Fraction &f2);
-Fraction mod(const Fraction &f1, const Fraction &f2);
-Fraction power(const Fraction &f1, const Fraction &f2);
+Fraction add(const Fraction&, const Fraction&);
+Fraction sub(const Fraction&, const Fraction&);
+Fraction mult(const Fraction&, const Fraction&);
+Fraction devide(const Fraction&, const Fraction&);
+Fraction mod(const Fraction&, const Fraction&);
+Fraction power(const Fraction&, const Fraction&);
 
-Fraction factorial(const Fraction &f1);
-Fraction dfactorial(const Fraction &f1);
+Fraction factorial(const Fraction&);
+Fraction dfactorial(const Fraction&);
+
+// Fraction sqrt1(const Fraction&);
+
+int comp(const char &ch){
+	switch(ch){
+		case '+':
+		case '-':
+			return 0;
+		case '*':
+		case '/':
+		case '%':
+			return 1;
+		case '^':
+			return 2;
+	}
+	return -1;
+}
+
+// const unordered_map<string, function<Fraction(Fraction)>> funcs{
+// 	{"sqrt", sqrt1}
+// };
 
 const unordered_map<string, function<Fraction(Fraction, Fraction)>> opers2{
 	{"+", add},
@@ -73,7 +94,6 @@ Fraction power(const Fraction &f1, const Fraction &f2){
 
 
 
-
 Fraction factorial(const Fraction &f1){
 	Fraction ans(1);
 	for(Fraction i = ans; i <= f1; i += 1)
@@ -87,5 +107,11 @@ Fraction dfactorial(const Fraction &f1){
 		ans *= i;
 	return ans;
 }
+
+
+
+// Fraction sqrt1(const Fraction &f1){
+
+// }
 
 #endif
