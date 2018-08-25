@@ -3,6 +3,7 @@
 #define APA_H
 #include <vector>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -60,7 +61,7 @@ public:
 		resize(size, n);
 	}
 
-	operator string() const{
+	operator const string() const{
 		string result;
 		for(auto n : *this){
 			string ns(to_string(n));

@@ -44,15 +44,15 @@ public:
 		n = i;
 	}
 
-	operator string() const {
+	operator const string() const {
 		if(d == 1)
 			return n;
 		else{
 			//判断分数是否可以转为小数。
-			// Fraction f(n / d);
-			// if(f.n == n && f.d == d)
-			//  	return n / d;
-			// else
+			Fraction f(n / d);
+			if(f.n == n && f.d == d)
+			 	return n / d;
+			else
 				return static_cast<string>(n) + "|" + static_cast<string>(d);
 		}
 	}
